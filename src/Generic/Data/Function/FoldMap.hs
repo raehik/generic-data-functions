@@ -29,6 +29,7 @@ module Generic.Data.Function.FoldMap
   ( GenericFoldMap(..)
   , genericFoldMapNonSum, GFoldMapNonSum
   , genericFoldMapSum,    GFoldMapSum
+  , genericFoldMapSumConsByte,    GFoldMapSumConsByte
   ) where
 
 import GHC.Generics
@@ -36,6 +37,8 @@ import GHC.Generics
 import Generic.Data.Function.FoldMap.NonSum
 import Generic.Data.Function.FoldMap.Sum
 import Generic.Data.Function.FoldMap.Constructor
+import Generic.Data.Function.FoldMap.SumConsByte
+import Numeric.Natural ( Natural )
 
 -- | Generic 'foldMap' over a term of non-sum data type @a@.
 --
@@ -57,3 +60,10 @@ genericFoldMapSum
     => (String -> m)
     -> a -> m
 genericFoldMapSum f = gFoldMapSum f . from
+
+genericFoldMapSumConsByte
+    :: forall m a
+    .  (Generic a, GFoldMapSumConsByte m (Rep a))
+    => (Natural -> m)
+    -> a -> m
+genericFoldMapSumConsByte f = gFoldMapSumConsByte f . from
