@@ -13,7 +13,7 @@ import Data.Text ( Text )
 import Control.Applicative qualified as Applicative
 import Control.Applicative ( Alternative((<|>)) )
 
-{- | Sum-type monads that can be generically 'traverse'd.
+{- | Sum type monads that can be generically 'traverse'd.
 
 For sum types, we require a monad with choice to differentiate constructors.
 -}

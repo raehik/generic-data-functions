@@ -28,10 +28,12 @@ library
   exposed-modules:
       Generic.Data.Function
       Generic.Data.Function.Error
+      Generic.Data.Function.Example
       Generic.Data.Function.FoldMap
       Generic.Data.Function.FoldMap.Constructor
       Generic.Data.Function.FoldMap.NonSum
       Generic.Data.Function.FoldMap.Sum
+      Generic.Data.Function.FoldMap.SumConsByte
       Generic.Data.Function.Traverse
       Generic.Data.Function.Traverse.Constructor
       Generic.Data.Function.Traverse.NonSum
