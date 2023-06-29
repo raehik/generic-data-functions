@@ -23,19 +23,22 @@ import Generic.Data.Function.Util.TypeNats ( natVal'' )
 import Generic.Data.Function.Error ( type ENoEmpty, type EUnexpectedNonSum )
 import Generic.Data.Function.FoldMap.Constructor ( GFoldMapC(gFoldMapC) )
 
+import Data.Word ( Word8 )
+
 class GFoldMapSumConsByte m f where
-    gFoldMapSumConsByte :: (Natural -> m) -> f p -> m
+    gFoldMapSumConsByte :: (Word8 -> m) -> f p -> m
 
 instance GFoldMapSumConsByte m f => GFoldMapSumConsByte m (D1 c f) where
     gFoldMapSumConsByte f (M1 a) = gFoldMapSumConsByte f a
 
 instance
   ( FitsInByte (SumArity (l :+: r))
-  , G m 0 (l :+: r)
+  , GFoldMapCSumCtrArityByte m 0 (l :+: r)
   , GFoldMapCSumCtr m (l :+: r)
   , Semigroup m
   ) => GFoldMapSumConsByte m (l :+: r) where
-    gFoldMapSumConsByte f lr = g @m @0 f lr <> gFoldMapCSumCtr lr
+    gFoldMapSumConsByte f lr =
+        gFoldMapCSumCtrArityByte @m @0 f lr <> gFoldMapCSumCtr lr
 
 instance TypeError EUnexpectedNonSum => GFoldMapSumConsByte m (C1 c f) where
     gFoldMapSumConsByte _ = undefined
@@ -59,16 +62,19 @@ instance GFoldMapC m f => GFoldMapCSumCtr m (C1 c f) where
 
 ---
 
-class G m (arity :: Natural) f where
-    g :: (Natural -> m) -> f p -> m
+class GFoldMapCSumCtrArityByte m (arity :: Natural) f where
+    gFoldMapCSumCtrArityByte :: (Word8 -> m) -> f p -> m
 
-instance (G m arity l, G m (arity + SumArity l) r)
-  => G m arity (l :+: r) where
-    g f = \case L1 l -> g @m @arity                f l
-                R1 r -> g @m @(arity + SumArity l) f r
+instance
+  ( GFoldMapCSumCtrArityByte m arity l
+  , GFoldMapCSumCtrArityByte m (arity + SumArity l) r
+  ) => GFoldMapCSumCtrArityByte m arity (l :+: r) where
+    gFoldMapCSumCtrArityByte f = \case
+      L1 l -> gFoldMapCSumCtrArityByte @m @arity                f l
+      R1 r -> gFoldMapCSumCtrArityByte @m @(arity + SumArity l) f r
 
-instance KnownNat arity => G m arity (C1 c f) where
-    g f _ = f (natVal'' @arity)
+instance KnownNat arity => GFoldMapCSumCtrArityByte m arity (C1 c f) where
+    gFoldMapCSumCtrArityByte f _ = f (fromIntegral (natVal'' @arity))
 
 ---
 
@@ -81,7 +87,7 @@ type FitsInByte n = FitsInByteResult (n <=? 255)
 type family FitsInByteResult (b :: Bool) :: Constraint where
     FitsInByteResult 'True = ()
     FitsInByteResult 'False = TypeErrorMessage
-        "Generic deriving of Store instances can only be used on datatypes with fewer than 256 constructors."
+        "TODO ya type had more than 255 constructors"
 
 type family TypeErrorMessage (a :: Symbol) :: Constraint where
 #if MIN_VERSION_base(4,9,0)
