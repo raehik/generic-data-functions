@@ -38,7 +38,7 @@ import Generic.Data.Function.FoldMap.NonSum
 import Generic.Data.Function.FoldMap.Sum
 import Generic.Data.Function.FoldMap.Constructor
 import Generic.Data.Function.FoldMap.SumConsByte
-import Numeric.Natural ( Natural )
+import Data.Word ( Word8 )
 
 -- | Generic 'foldMap' over a term of non-sum data type @a@.
 --
@@ -64,6 +64,6 @@ genericFoldMapSum f = gFoldMapSum f . from
 genericFoldMapSumConsByte
     :: forall m a
     .  (Generic a, GFoldMapSumConsByte m (Rep a))
-    => (Natural -> m)
+    => (Word8 -> m)
     -> a -> m
 genericFoldMapSumConsByte f = gFoldMapSumConsByte f . from
