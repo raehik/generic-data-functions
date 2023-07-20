@@ -54,6 +54,9 @@ genericFoldMapNonSum = gFoldMapNonSum . from
 -- @a@ must have at least two constructors.
 --
 -- You must provide a function for mapping constructor names to monoidal values.
+--
+-- This is the most generic option, but depending on your string manipulation
+-- may be slower.
 genericFoldMapSum
     :: forall m a
     .  (Generic a, GFoldMapSum m (Rep a))
@@ -61,6 +64,15 @@ genericFoldMapSum
     -> a -> m
 genericFoldMapSum f = gFoldMapSum f . from
 
+-- | Generic 'foldMap' over a term of sum data type @a@ where constructors are
+-- mapped to their index (distance from first/leftmost constructor)
+--
+-- @a@ must have at least two constructors.
+--
+-- You must provide a function for mapping bytes to monoidal values.
+--
+-- This should be fairly fast, but sadly I think it's slower than the generics
+-- in store and binary/cereal libraries.
 genericFoldMapSumConsByte
     :: forall m a
     .  (Generic a, GFoldMapSumConsByte m (Rep a))

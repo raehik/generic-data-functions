@@ -3,15 +3,10 @@
 {-# LANGUAGE CPP #-} -- due to TypeErrorMessage hack
 
 {- | 'foldMap' for sum types, where constructors are encoded by index
-     (distance from leftmost constructor).
+     (distance from first/leftmost constructor) in a single byte, which is
+     prepended to their contents.
 
-TODO the @Natural -> m@ function may be inefficient. If so, I don't know how to
-re-efficient it. If I could write something more like @forall n. KnownNat n =>
-m@, I think it might be better. But I shouldn't write a class for it because
-it's only concerned with the SOP representation, so should be pluggable.
-
-TODO FitsInByte is worthless oops. Could I change this to provide some extra
-type safety while being super flexible?
+TODO. Clumsy and limited. And yet, still handy enough I think.
 -}
 
 module Generic.Data.Function.FoldMap.SumConsByte where
