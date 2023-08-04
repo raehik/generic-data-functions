@@ -6,6 +6,8 @@ module Generic.Data.Function.Traverse.Sum where
 import GHC.Generics
 import Generic.Data.Function.Util.Generic ( datatypeName', conName' )
 import Generic.Data.Function.Traverse.Constructor ( GTraverseC(gTraverseC), GenericTraverse(..) )
+import Generic.Data.Rep.Error
+import Generic.Data.Function.Common
 
 import Data.Text ( Text )
 import Control.Applicative qualified as Applicative
@@ -48,33 +50,35 @@ data PfxTagCfg a = PfxTagCfg
   -- ^ Make a prefix tag human-readable. 'show' is often appropriate.
   }
 
-class GTraverseSum f f' where
+class GTraverseSum (opts :: SumOpts) cd f f' where
     gTraverseSum :: GenericTraverseC f pt => PfxTagCfg pt -> f (f' p)
 
-instance (Functor f, GTraverseSum' cd f f') => GTraverseSum f (D1 cd f') where
-    gTraverseSum pt = M1 <$> gTraverseSum' @cd pt
-
-class GTraverseSum' cd f f' where
-    gTraverseSum' :: GenericTraverseC f pt => PfxTagCfg pt -> f (f' p)
-
 instance (GenericTraverseSum f, GTraverseCSum cd f (l :+: r), Datatype cd)
-  => GTraverseSum' cd f (l :+: r) where
-    gTraverseSum' ptc = do
-        pt <- genericTraverseSumPfxTagAction cd
-        gTraverseCSum @cd ptc pt <|> parseErrorNoMatch pt
-      where
-        cd = datatypeName' @cd
-        parseErrorNoMatch pt =
-            genericTraverseSumNoMatchingCstrAction cd testedCstrs ((pfxTagCfgShow ptc) pt)
-        testedCstrs = [] -- TODO
+  => GTraverseSum opts cd f (l :+: r) where
+    gTraverseSum = gTraverseSum' @cd
 
--- | Refuse to derive a non-sum instance if we expected a sum data type.
-instance GTraverseSum' cd f (C1 cc f') where
-    gTraverseSum' = undefined
+gTraverseSum'
+    :: forall {p} cd f f' pt
+    .  (GenericTraverseC f pt, GenericTraverseSum f, GTraverseCSum cd f f', Datatype cd)
+    => PfxTagCfg pt -> f (f' p)
+gTraverseSum' ptc = do
+    pt <- genericTraverseSumPfxTagAction cd
+    gTraverseCSum @cd ptc pt <|> parseErrorNoMatch pt
+  where
+    cd = datatypeName' @cd
+    parseErrorNoMatch pt =
+        genericTraverseSumNoMatchingCstrAction cd testedCstrs ((pfxTagCfgShow ptc) pt)
+    testedCstrs = [] -- TODO
 
--- | Refuse to derive an instance for an empty data type.
-instance GTraverseSum' cd f V1 where
-    gTraverseSum' = undefined
+instance GTraverseSum 'SumOnly cd f (C1 cc f') where
+    gTraverseSum = error eNeedSum
+
+instance (GenericTraverseSum f, GTraverseCSum cd f (C1 cc f'), Datatype cd)
+  => GTraverseSum 'AllowSingletonSum cd f (C1 cc f') where
+    gTraverseSum = gTraverseSum' @cd
+
+instance GTraverseSum opts cd f V1 where
+    gTraverseSum = error eNoEmpty
 
 -- | Generic getter (constructor sum level).
 class GTraverseCSum cd f f' where

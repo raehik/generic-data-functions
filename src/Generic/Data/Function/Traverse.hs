@@ -1,3 +1,5 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+
 {- | 'traverse' for generic data types.
 
 TODO This is harder to conceptualize than generic 'foldMap'. No nice clean
@@ -16,6 +18,7 @@ module Generic.Data.Function.Traverse
 
 import GHC.Generics
 
+import Generic.Data.Rep.Assert
 import Generic.Data.Function.Traverse.NonSum
 import Generic.Data.Function.Traverse.Sum
 import Generic.Data.Function.Traverse.Constructor
@@ -23,25 +26,27 @@ import Generic.Data.Function.Traverse.Constructor
 import Data.Text qualified as Text
 
 -- | Generic 'traverse' over a term of non-sum data type @f a@.
---
--- @f a@ must have exactly one constructor.
 genericTraverseNonSum
-    :: forall f a
-    .  (Generic a, GTraverseNonSum f (Rep a), Functor f)
+    :: forall {cd} {gf} asserts f a
+    .  ( Generic a, Rep a ~ D1 cd gf
+       , GTraverseNonSum cd f gf
+       , ApplyGCAsserts asserts f
+       , Functor f)
     => f a
-genericTraverseNonSum = to <$> gTraverseNonSum
+genericTraverseNonSum = (to . M1) <$> gTraverseNonSum @cd
 
 -- | Generic 'traverse' over a term of sum data type @f a@.
 --
--- @f a@ must have at least two constructors.
---
 -- You must provide a configuration for how to handle constructors.
 genericTraverseSum
-    :: forall f a pt
-    .  (Generic a, GTraverseSum f (Rep a), GenericTraverseC f pt, Functor f)
+    :: forall {cd} {gf} opts asserts f a pt
+    .  ( Generic a, Rep a ~ D1 cd gf
+       , GTraverseSum opts cd f gf
+       , ApplyGCAsserts asserts f
+       , GenericTraverseC f pt, Functor f)
     => PfxTagCfg pt
     -> f a
-genericTraverseSum ptc = to <$> gTraverseSum ptc
+genericTraverseSum ptc = (to . M1) <$> gTraverseSum @opts @cd ptc
 
 -- | Construct a prefix tag config using existing 'Eq' and 'Show' instances.
 --
