@@ -9,7 +9,7 @@ import GHC.TypeNats ( Natural, KnownNat, type (+) )
 import Generic.Data.Function.Util.Generic ( datatypeName', conName', selName'' )
 import Generic.Data.Function.Util.TypeNats ( natVal'' )
 
-import Control.Applicative ( liftA2 )
+import Control.Applicative ( liftA2 ) -- not needed from GHC 9.6
 
 import Data.Kind ( type Type, type Constraint )
 

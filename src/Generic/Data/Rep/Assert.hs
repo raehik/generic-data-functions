@@ -1,4 +1,4 @@
-{-# LANGUAGE UndecidableInstances #-} -- required below GHC 9.6 TODO maybe untrue for this
+{-# LANGUAGE UndecidableInstances #-} -- required below GHC 9.6
 
 {- | Assertions on precise generic data representation.
 
