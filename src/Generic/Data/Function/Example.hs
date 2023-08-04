@@ -1,14 +1,36 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+
 module Generic.Data.Function.Example where
 
-import GHC.Generics ( Generic )
-import Generic.Data.Function.FoldMap.Constructor ( GenericFoldMap(..) )
+import GHC.Generics
+import Generic.Data.Function.FoldMap
+import Generic.Data.Rep.Assert
 
-data D a = D1 a | D2 a a deriving stock (Generic, Show)
+import Data.List qualified as List
 
-newtype Showly a = Showly { unShowly :: a }
-    deriving Show via a
-    deriving (Semigroup, Monoid) via a
+--data D a = D1 a | D2 a a deriving stock (Generic, Show)
+data X = X1 | X2 deriving stock (Generic)
+data Y = Y deriving stock (Generic)
 
-instance GenericFoldMap (Showly String) where
-    type GenericFoldMapC (Showly String) a = Show a
-    genericFoldMapF = Showly . show
+newtype Showly = Showly { unShowly :: [String] }
+    --deriving Show via String
+    deriving (Semigroup, Monoid) via [String]
+
+instance GenericFoldMap Showly where
+    type GenericFoldMapC Showly a = Show a
+    genericFoldMapF = Showly . (\a -> [a]) . show
+
+showGeneric
+    :: forall {cd} {f} opts asserts a
+    .  (Generic a, Rep a ~ D1 cd f, GFoldMapSum opts Showly f, ApplyGCAsserts asserts f)
+    => a -> String
+showGeneric =
+      mconcat . List.intersperse " " . unShowly
+    . genericFoldMapSum @opts @asserts (\cstr -> Showly [cstr])
+
+showGeneric'
+    :: forall {cd} {f} asserts a
+    .  (Generic a, Rep a ~ D1 cd f, GFoldMapNonSum Showly f, ApplyGCAsserts asserts f)
+    => a -> String
+showGeneric' =
+    mconcat . List.intersperse " " . unShowly . genericFoldMapNonSum @asserts

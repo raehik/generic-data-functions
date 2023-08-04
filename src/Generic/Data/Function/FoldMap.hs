@@ -1,3 +1,5 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+
 {- | 'foldMap' for generic data types.
 
 'foldMap' can be considered a two-step process:
@@ -34,6 +36,7 @@ module Generic.Data.Function.FoldMap
 
 import GHC.Generics
 
+import Generic.Data.Rep.Assert
 import Generic.Data.Function.FoldMap.NonSum
 import Generic.Data.Function.FoldMap.Sum
 import Generic.Data.Function.FoldMap.Constructor
@@ -44,25 +47,27 @@ import Data.Word ( Word8 )
 --
 -- @a@ must have exactly one constructor.
 genericFoldMapNonSum
-    :: forall m a
-    .  (Generic a, GFoldMapNonSum m (Rep a))
+    :: forall {cd} {f} asserts m a
+    .  ( Generic a, Rep a ~ D1 cd f
+       , GFoldMapNonSum m f
+       , ApplyGCAsserts asserts f)
     => a -> m
-genericFoldMapNonSum = gFoldMapNonSum . from
+genericFoldMapNonSum = gFoldMapNonSum . unM1 . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@.
---
--- @a@ must have at least two constructors.
 --
 -- You must provide a function for mapping constructor names to monoidal values.
 --
 -- This is the most generic option, but depending on your string manipulation
 -- may be slower.
 genericFoldMapSum
-    :: forall m a
-    .  (Generic a, GFoldMapSum m (Rep a))
+    :: forall {cd} {f} opts asserts m a
+    .  ( Generic a, Rep a ~ D1 cd f
+       , GFoldMapSum opts m f
+       , ApplyGCAsserts asserts f)
     => (String -> m)
     -> a -> m
-genericFoldMapSum f = gFoldMapSum f . from
+genericFoldMapSum f = gFoldMapSum @opts f . unM1 . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@ where constructors are
 -- mapped to their index (distance from first/leftmost constructor)

@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE UndecidableInstances #-} -- required below GHC 9.6
 
 {- | 'foldMap' for sum types where constructors are encoded by mapping the
@@ -11,25 +12,25 @@ you should be able to "reverse" the process (e.g. for generic 'traverse').
 module Generic.Data.Function.FoldMap.Sum where
 
 import GHC.Generics
-import GHC.TypeLits ( TypeError )
 import Generic.Data.Function.Util.Generic ( conName' )
-import Generic.Data.Function.Error ( type ENoEmpty, type EUnexpectedNonSum )
 import Generic.Data.Function.FoldMap.Constructor ( GFoldMapC(gFoldMapC) )
+import Generic.Data.Rep.Error
+import Generic.Data.Function.Common
 
-class GFoldMapSum m f where
-    gFoldMapSum :: (String -> m) -> f p -> m
+class GFoldMapSum (opts :: SumOpts) m f where gFoldMapSum :: (String -> m) -> f p -> m
 
-instance GFoldMapSum m f => GFoldMapSum m (D1 c f) where
-    gFoldMapSum f (M1 a) = gFoldMapSum f a
-
-instance GFoldMapCSum m (l :+: r) => GFoldMapSum m (l :+: r) where
+instance GFoldMapCSum m (l :+: r) => GFoldMapSum opts m (l :+: r) where
     gFoldMapSum = gFoldMapCSum
 
-instance TypeError EUnexpectedNonSum => GFoldMapSum m (C1 c f) where
-    gFoldMapSum = undefined
+instance GFoldMapSum 'SumOnly m (C1 c f) where
+    gFoldMapSum = error eNeedSum
 
-instance TypeError ENoEmpty => GFoldMapSum m V1 where
-    gFoldMapSum = undefined
+instance GFoldMapCSum m (C1 c f)
+  => GFoldMapSum 'AllowSingletonSum m (C1 c f) where
+    gFoldMapSum = gFoldMapCSum
+
+instance GFoldMapSum opts m V1 where
+    gFoldMapSum = error eNoEmpty
 
 -- | Sum type handler prefixing constructor contents with their mapped
 --   constructor name via a provided @String -> m@.

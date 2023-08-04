@@ -73,5 +73,25 @@ This library is designed to work with and around existing libraries and type
 classes. Thus, you will likely be dealing in orphans. Instances, that is. That's
 life, Jim.
 
+### Funky generics
+I have made some weird design choices in this library. Here are some rationales.
+
+#### Handling badness on type & term levels
+I don't like silently erroring on badly-configured generics usage, e.g. asking
+for a function via generics for an empty data type. Originally, I made those
+type error, and that was that. But it meant I would write the same instance over
+and over again. And that requirement was hidden in a type class implementation.
+Really, it'd be nice if I could put such requirements directly in the types of
+the functions that have them.
+
+I've done that. Now, on certain *representation errors*, e.g. you tried to use
+non-sum generics on a sum type, we runtime error instead. However, there's a
+separate layer for making *assertions about generic representation on the type
+level*, the use of which is highly suggested.
+
+Note that if you like to write wrappers over generic functions to fill in
+certain bits of info, your job just got a lot uglier. Soz. Anything for type
+safety my sweet.
+
 ## License
 Provided under the MIT license. See `LICENSE` for license text.
