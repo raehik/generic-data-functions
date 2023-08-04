@@ -4,9 +4,7 @@
 module Generic.Data.Function.Traverse.Sum where
 
 import GHC.Generics
-import GHC.TypeLits ( TypeError )
 import Generic.Data.Function.Util.Generic ( datatypeName', conName' )
-import Generic.Data.Function.Error ( type ENoEmpty, type EUnexpectedNonSum )
 import Generic.Data.Function.Traverse.Constructor ( GTraverseC(gTraverseC), GenericTraverse(..) )
 
 import Data.Text ( Text )
@@ -71,11 +69,11 @@ instance (GenericTraverseSum f, GTraverseCSum cd f (l :+: r), Datatype cd)
         testedCstrs = [] -- TODO
 
 -- | Refuse to derive a non-sum instance if we expected a sum data type.
-instance TypeError EUnexpectedNonSum => GTraverseSum' cd f (C1 cc f') where
+instance GTraverseSum' cd f (C1 cc f') where
     gTraverseSum' = undefined
 
 -- | Refuse to derive an instance for an empty data type.
-instance TypeError ENoEmpty => GTraverseSum' cd f V1 where
+instance GTraverseSum' cd f V1 where
     gTraverseSum' = undefined
 
 -- | Generic getter (constructor sum level).

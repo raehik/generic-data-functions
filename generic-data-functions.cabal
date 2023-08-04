@@ -27,7 +27,7 @@ source-repository head
 library
   exposed-modules:
       Generic.Data.Function
-      Generic.Data.Function.Error
+      Generic.Data.Function.Common
       Generic.Data.Function.Example
       Generic.Data.Function.FoldMap
       Generic.Data.Function.FoldMap.Constructor
@@ -41,6 +41,8 @@ library
       Generic.Data.Function.Util.Generic
       Generic.Data.Function.Util.TypeNats
       Generic.Data.Function.Via
+      Generic.Data.Rep.Assert
+      Generic.Data.Rep.Error
   other-modules:
       Paths_generic_data_functions
   hs-source-dirs:

@@ -15,7 +15,6 @@ import GHC.Generics
 import GHC.TypeLits
 import Data.Kind ( Type, Constraint )
 import Generic.Data.Function.Util.TypeNats ( natVal'' )
-import Generic.Data.Function.Error ( type ENoEmpty, type EUnexpectedNonSum )
 import Generic.Data.Function.FoldMap.Constructor ( GFoldMapC(gFoldMapC) )
 
 import Data.Word ( Word8 )
@@ -35,10 +34,10 @@ instance
     gFoldMapSumConsByte f lr =
         gFoldMapCSumCtrArityByte @m @0 f lr <> gFoldMapCSumCtr lr
 
-instance TypeError EUnexpectedNonSum => GFoldMapSumConsByte m (C1 c f) where
+instance GFoldMapSumConsByte m (C1 c f) where
     gFoldMapSumConsByte _ = undefined
 
-instance TypeError ENoEmpty => GFoldMapSumConsByte m V1 where
+instance GFoldMapSumConsByte m V1 where
     gFoldMapSumConsByte _ = undefined
 
 ---
