@@ -1,4 +1,12 @@
--- | Common descriptions for common generic data representation errors.
+{- | Common descriptions for common generic data representation errors. Type
+    level (compile time) and term level (runtime).
+
+TODO: if this package ever expands, these deserve plenty of attention, like
+generic-optics has.
+
+Runtime errors are a bit meatier because it's easy to do so, and I don't want
+people to see them more than once (really you should use the typing support).
+-}
 
 module Generic.Data.Rep.Error where
 
