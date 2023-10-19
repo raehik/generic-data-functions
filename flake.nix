@@ -1,7 +1,7 @@
 {
   inputs = {
     #nixpkgs.url = "github:nixos/nixpkgs/haskell-updates";
-    nixpkgs.url = "github:vaibhavsagar/nixpkgs/vaibhavsagar/ghc981";
+    nixpkgs.url = "github:raehik/nixpkgs/raehik/ghc981";
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
   };
