@@ -8,7 +8,9 @@ pkgs:
 
   basePackages = pkgs.haskell.packages.ghc98;
 
-  #packages = { #self: super: with pkgs.haskell.lib; {
+  packages = { #self: super: with pkgs.haskell.lib; {
+    #splitmix.source = "0.1.0.5";
+    #splitmix = pkgs.haskell.packages.splitmix_0_1_0_5;
     # 2023-04-17 raehik: need hedgehog 1.2 for GHC 9.6
     #hedgehog.source = "1.2";
     #tasty-hedgehog.source = "1.4.0.1";
@@ -19,9 +21,19 @@ pkgs:
     #warp.source = "3.3.25";
     #recv.source = "0.1.0";
     #warp-tls.source = "3.3.6";
-  #};
+  };
 
-  #settings = {
+  settings = {
+    ed25519 = {
+      # 2023-10-19: bytestring upper bound needs bumping
+      jailbreak = true;
+    };
+
+    splitmix = {super, ...}: {
+      custom = super.splitmix_0_1_0_5;
+      # 2023-10-19: requires system lib testu01
+      #check = false;
+    };
 
     #hourglass = {
       # 2023-04-17 raehik: hourglass tests broken from GHC 9.2.5
@@ -44,6 +56,6 @@ pkgs:
       #check = false;
     #};
 
-  #};
+  };
 
 }

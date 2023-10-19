@@ -35,16 +35,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1697080835,
-        "narHash": "sha256-9WvPbaBu9/01Y6R2iZxhQ3tSmkmtk6E6IUtR91bCJpM=",
-        "owner": "vaibhavsagar",
+        "lastModified": 1697717690,
+        "narHash": "sha256-qHs6XV/af1/MEi7nfKLvhlyVBOc+1Wt1uZSL0SwK3fE=",
+        "owner": "raehik",
         "repo": "nixpkgs",
-        "rev": "ce43462d8786e36f6ac2a3ab91ac1068cdd8cef0",
+        "rev": "320db519e71b053990594e71aef410ba833df997",
         "type": "github"
       },
       "original": {
-        "owner": "vaibhavsagar",
-        "ref": "vaibhavsagar/ghc981",
+        "owner": "raehik",
+        "ref": "raehik/ghc981",
         "repo": "nixpkgs",
         "type": "github"
       }
