@@ -8,7 +8,7 @@ pkgs:
 
   basePackages = pkgs.haskell.packages.ghc98;
 
-  packages = { #self: super: with pkgs.haskell.lib; {
+  #packages = { #self: super: with pkgs.haskell.lib; {
     #splitmix.source = "0.1.0.5";
     #splitmix = pkgs.haskell.packages.splitmix_0_1_0_5;
     # 2023-04-17 raehik: need hedgehog 1.2 for GHC 9.6
@@ -21,18 +21,24 @@ pkgs:
     #warp.source = "3.3.25";
     #recv.source = "0.1.0";
     #warp-tls.source = "3.3.6";
-  };
+  #};
 
   settings = {
-    ed25519 = {
-      # 2023-10-19: bytestring upper bound needs bumping
-      jailbreak = true;
-    };
+    #ed25519 = {
+      # TODO: We need revision 8 for GHC 9.8.
+      # I manually bumped the Hackage package set in my GHC 9.8 branch of
+      # someone else's branch.
+      # But `jailbreak = true` should work... but it doesn't? Hrm.
+      #jailbreak = true;
+    #};
 
     splitmix = {super, ...}: {
-      custom = super.splitmix_0_1_0_5;
+      # TODO: this should work. but it doesn't. splitmix 0.1.0.4 is still used.
+      custom = _: super.splitmix_0_1_0_5;
       # 2023-10-19: requires system lib testu01
       #check = false;
+      # 2023-11-02: idk try it
+      check = false;
     };
 
     #hourglass = {
