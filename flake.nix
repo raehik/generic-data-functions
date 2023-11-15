@@ -13,7 +13,7 @@
   outputs = inputs:
   let
     # simple devshell for non-dev compilers: really just want `cabal repl`
-    nondevDevshell = compiler: {
+    nondevDevShell = compiler: {
       mkShellArgs.name = "${compiler}-generic-data-functions";
       hoogle = false;
       tools = _: {
@@ -27,7 +27,7 @@
       systems = inputs.nixpkgs.lib.systems.flakeExposed;
       imports = [ inputs.haskell-flake.flakeModule ];
       perSystem = { self', pkgs, config, ... }: {
-        packages.default = self'.packages.ghc96-generic-data-functions;
+        packages.default  = self'.packages.ghc96-generic-data-functions;
         devShells.default = self'.devShells.ghc96;
         haskellProjects.ghc96 = {
           # 2023-11-14: GHC 9.6 base package set is borked
@@ -42,11 +42,11 @@
         };
         haskellProjects.ghc94 = {
           basePackages = pkgs.haskell.packages.ghc94;
-          devShell = nondevDevshell "ghc94";
+          devShell = nondevDevShell "ghc94";
         };
         haskellProjects.ghc92 = {
           basePackages = pkgs.haskell.packages.ghc92;
-          devShell = nondevDevshell "ghc92";
+          devShell = nondevDevShell "ghc92";
         };
       };
     };
