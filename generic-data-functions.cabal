@@ -28,6 +28,10 @@ library
   exposed-modules:
       Generic.Data.Function
       Generic.Data.Function.Common
+      Generic.Data.Function.Contra
+      Generic.Data.Function.Contra.Constructor
+      Generic.Data.Function.Contra.NonSum
+      Generic.Data.Function.Contra.Sum
       Generic.Data.Function.Example
       Generic.Data.Function.FoldMap
       Generic.Data.Function.FoldMap.Constructor
@@ -61,5 +65,7 @@ library
   ghc-options: -Wall
   build-depends:
       base >=4.14 && <5
+    , bytestring
+    , contravariant
     , text >=1.2.5.0 && <2.1
   default-language: GHC2021
