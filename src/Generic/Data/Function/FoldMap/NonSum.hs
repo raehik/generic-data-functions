@@ -16,8 +16,5 @@ class GFoldMapNonSum m f where gFoldMapNonSum :: f p -> m
 instance GFoldMapC m f => GFoldMapNonSum m (C1 c f) where
     gFoldMapNonSum (M1 a) = gFoldMapC a
 
-instance GFoldMapNonSum m (l :+: r) where
-    gFoldMapNonSum = error eNoSum
-
-instance GFoldMapNonSum m V1 where
-    gFoldMapNonSum = error eNoEmpty
+instance GFoldMapNonSum m (l :+: r) where gFoldMapNonSum = error eNoSum
+instance GFoldMapNonSum m V1        where gFoldMapNonSum = error eNoEmpty
