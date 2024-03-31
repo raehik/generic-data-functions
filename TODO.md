@@ -30,3 +30,6 @@ well with `GHC.Generic`'s concept of solving everything with type classes. Sure,
 I could write more structured generic traversals, but now you need carry around
 more requirements, and I'm not sure if I'd be giving up performance. (Do I care
 enough about that, though...?)
+
+### GHC 9.10: Use explicit types (`RequiredTypeArguments`)
+Will be a while until GHC 9.10 is stable for NixOS, so long-term task.
