@@ -13,35 +13,40 @@ module Generic.Data.Function.FoldMap.Sum where
 
 import GHC.Generics
 import Generic.Data.Function.Util.Generic ( conName' )
-import Generic.Data.Function.FoldMap.Constructor ( GFoldMapC(gFoldMapC) )
+import Generic.Data.Function.FoldMap.Constructor
+  ( GFoldMapC(gFoldMapC)
+  , GenericFoldMap(type GenericFoldMapM) )
 import Generic.Data.Rep.Error
 import Generic.Data.Function.Common
 
-class GFoldMapSum (opts :: SumOpts) m f where gFoldMapSum :: (String -> m) -> f p -> m
+class GFoldMapSum (opts :: SumOpts) tag f where
+    gFoldMapSum :: (String -> GenericFoldMapM tag) -> f p -> GenericFoldMapM tag
 
-instance GFoldMapCSum m (l :+: r) => GFoldMapSum opts m (l :+: r) where
-    gFoldMapSum = gFoldMapCSum
+instance GFoldMapCSum tag (l :+: r) => GFoldMapSum opts tag (l :+: r) where
+    gFoldMapSum = gFoldMapCSum @tag
 
-instance GFoldMapSum 'SumOnly m (C1 c f) where
+instance GFoldMapSum 'SumOnly tag (C1 c f) where
     gFoldMapSum = error eNeedSum
 
-instance GFoldMapCSum m (C1 c f)
-  => GFoldMapSum 'AllowSingletonSum m (C1 c f) where
-    gFoldMapSum = gFoldMapCSum
+instance GFoldMapCSum tag (C1 c f)
+  => GFoldMapSum 'AllowSingletonSum tag (C1 c f) where
+    gFoldMapSum = gFoldMapCSum @tag
 
-instance GFoldMapSum opts m V1 where
+instance GFoldMapSum opts tag V1 where
     gFoldMapSum = error eNoEmpty
 
 -- | Sum type handler prefixing constructor contents with their mapped
 --   constructor name via a provided @String -> m@.
 --
 -- TODO rename
-class GFoldMapCSum m f where gFoldMapCSum :: (String -> m) -> f p -> m
+class GFoldMapCSum tag f where
+    gFoldMapCSum :: (String -> GenericFoldMapM tag) -> f p -> GenericFoldMapM tag
 
-instance (GFoldMapCSum m l, GFoldMapCSum m r) => GFoldMapCSum m (l :+: r) where
-    gFoldMapCSum f = \case L1 l -> gFoldMapCSum f l
-                           R1 r -> gFoldMapCSum f r
+instance (GFoldMapCSum tag l, GFoldMapCSum tag r)
+  => GFoldMapCSum tag (l :+: r) where
+    gFoldMapCSum f = \case L1 l -> gFoldMapCSum @tag f l
+                           R1 r -> gFoldMapCSum @tag f r
 
-instance (Semigroup m, Constructor c, GFoldMapC m f)
-  => GFoldMapCSum m (C1 c f) where
-    gFoldMapCSum mapCstr (M1 a) = mapCstr (conName' @c) <> gFoldMapC a
+instance (Semigroup (GenericFoldMapM tag), Constructor c, GFoldMapC tag f)
+  => GFoldMapCSum tag (C1 c f) where
+    gFoldMapCSum mapCstr (M1 a) = mapCstr (conName' @c) <> gFoldMapC @tag a

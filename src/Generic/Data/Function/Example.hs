@@ -18,19 +18,20 @@ newtype Showly = Showly { unShowly :: [String] }
 
 instance GenericFoldMap Showly where
     type GenericFoldMapC Showly a = Show a
-    genericFoldMapF = Showly . (\a -> [a]) . show
+    type GenericFoldMapM Showly = [String]
+    genericFoldMapF = (\a -> [a]) . show
 
 showGeneric
     :: forall {cd} {f} opts asserts a
     .  (Generic a, Rep a ~ D1 cd f, GFoldMapSum opts Showly f, ApplyGCAsserts asserts f)
     => a -> String
 showGeneric =
-      mconcat . List.intersperse " " . unShowly
-    . genericFoldMapSum @opts @asserts (\cstr -> Showly [cstr])
+      mconcat . List.intersperse " "
+    . genericFoldMapSum @opts @asserts @Showly (\cstr -> [cstr])
 
 showGeneric'
     :: forall {cd} {f} asserts a
     .  (Generic a, Rep a ~ D1 cd f, GFoldMapNonSum Showly f, ApplyGCAsserts asserts f)
     => a -> String
 showGeneric' =
-    mconcat . List.intersperse " " . unShowly . genericFoldMapNonSum @asserts
+    mconcat . List.intersperse " " . genericFoldMapNonSum @asserts @Showly

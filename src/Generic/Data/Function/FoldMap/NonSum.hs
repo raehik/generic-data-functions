@@ -1,9 +1,12 @@
+{-# LANGUAGE AllowAmbiguousTypes  #-} -- due to tag type class design
 {-# LANGUAGE UndecidableInstances #-} -- required below GHC 9.6
 
 module Generic.Data.Function.FoldMap.NonSum where
 
 import GHC.Generics
-import Generic.Data.Function.FoldMap.Constructor ( GFoldMapC(gFoldMapC) )
+import Generic.Data.Function.FoldMap.Constructor
+  ( GFoldMapC(gFoldMapC)
+  , GenericFoldMap(type GenericFoldMapM) )
 import Generic.Data.Rep.Error
 
 {- | 'foldMap' over generic product data types.
@@ -11,10 +14,10 @@ import Generic.Data.Rep.Error
 Take a generic representation, map each field in the data type to a 'Monoid',
 and combine the results with ('<>').
 -}
-class GFoldMapNonSum m f where gFoldMapNonSum :: f p -> m
+class GFoldMapNonSum tag f where gFoldMapNonSum :: f p -> GenericFoldMapM tag
 
-instance GFoldMapC m f => GFoldMapNonSum m (C1 c f) where
-    gFoldMapNonSum (M1 a) = gFoldMapC a
+instance GFoldMapC tag f => GFoldMapNonSum tag (C1 c f) where
+    gFoldMapNonSum (M1 a) = gFoldMapC @tag a
 
-instance GFoldMapNonSum m (l :+: r) where gFoldMapNonSum = error eNoSum
-instance GFoldMapNonSum m V1        where gFoldMapNonSum = error eNoEmpty
+instance GFoldMapNonSum tag (l :+: r) where gFoldMapNonSum = error eNoSum
+instance GFoldMapNonSum tag V1        where gFoldMapNonSum = error eNoEmpty

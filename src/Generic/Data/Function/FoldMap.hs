@@ -47,12 +47,13 @@ import Data.Word ( Word8 )
 --
 -- @a@ must have exactly one constructor.
 genericFoldMapNonSum
-    :: forall {cd} {f} asserts m a
+    :: forall {cd} {f} asserts tag {m} a
     .  ( Generic a, Rep a ~ D1 cd f
-       , GFoldMapNonSum m f
+       , m ~ GenericFoldMapM tag
+       , GFoldMapNonSum tag f
        , ApplyGCAsserts asserts f)
     => a -> m
-genericFoldMapNonSum = gFoldMapNonSum . unM1 . from
+genericFoldMapNonSum = gFoldMapNonSum @tag . unM1 . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@.
 --
@@ -61,13 +62,14 @@ genericFoldMapNonSum = gFoldMapNonSum . unM1 . from
 -- This is the most generic option, but depending on your string manipulation
 -- may be slower.
 genericFoldMapSum
-    :: forall {cd} {f} opts asserts m a
+    :: forall {cd} {f} opts asserts tag {m} a
     .  ( Generic a, Rep a ~ D1 cd f
-       , GFoldMapSum opts m f
+       , m ~ GenericFoldMapM tag
+       , GFoldMapSum opts tag f
        , ApplyGCAsserts asserts f)
     => (String -> m)
     -> a -> m
-genericFoldMapSum f = gFoldMapSum @opts f . unM1 . from
+genericFoldMapSum f = gFoldMapSum @opts @tag f . unM1 . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@ where constructors are
 -- mapped to their index (distance from first/leftmost constructor)
@@ -79,8 +81,8 @@ genericFoldMapSum f = gFoldMapSum @opts f . unM1 . from
 -- This should be fairly fast, but sadly I think it's slower than the generics
 -- in store and binary/cereal libraries.
 genericFoldMapSumConsByte
-    :: forall m a
-    .  (Generic a, GFoldMapSumConsByte m (Rep a))
+    :: forall tag {m} a
+    .  (m ~ GenericFoldMapM tag, Generic a, GFoldMapSumConsByte tag (Rep a))
     => (Word8 -> m)
     -> a -> m
-genericFoldMapSumConsByte f = gFoldMapSumConsByte f . from
+genericFoldMapSumConsByte f = gFoldMapSumConsByte @tag f . from

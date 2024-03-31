@@ -15,24 +15,27 @@ import GHC.Generics
 import GHC.TypeLits
 import Data.Kind ( Type, Constraint )
 import Generic.Data.Function.Util.TypeNats ( natVal'' )
-import Generic.Data.Function.FoldMap.Constructor ( GFoldMapC(gFoldMapC) )
+import Generic.Data.Function.FoldMap.Constructor
+  ( GFoldMapC(gFoldMapC)
+  , GenericFoldMap(type GenericFoldMapM) )
 
 import Data.Word ( Word8 )
 
-class GFoldMapSumConsByte m f where
-    gFoldMapSumConsByte :: (Word8 -> m) -> f p -> m
+class GFoldMapSumConsByte tag f where
+    gFoldMapSumConsByte
+        :: (Word8 -> GenericFoldMapM tag) -> f p -> GenericFoldMapM tag
 
-instance GFoldMapSumConsByte m f => GFoldMapSumConsByte m (D1 c f) where
-    gFoldMapSumConsByte f (M1 a) = gFoldMapSumConsByte f a
+instance GFoldMapSumConsByte tag f => GFoldMapSumConsByte tag (D1 c f) where
+    gFoldMapSumConsByte f (M1 a) = gFoldMapSumConsByte @tag f a
 
 instance
   ( FitsInByte (SumArity (l :+: r))
-  , GFoldMapCSumCtrArityByte m 0 (l :+: r)
-  , GFoldMapCSumCtr m (l :+: r)
-  , Semigroup m
-  ) => GFoldMapSumConsByte m (l :+: r) where
+  , GFoldMapCSumCtrArityByte tag 0 (l :+: r)
+  , GFoldMapCSumCtr tag (l :+: r)
+  , Semigroup (GenericFoldMapM tag)
+  ) => GFoldMapSumConsByte tag (l :+: r) where
     gFoldMapSumConsByte f lr =
-        gFoldMapCSumCtrArityByte @m @0 f lr <> gFoldMapCSumCtr lr
+        gFoldMapCSumCtrArityByte @tag @0 f lr <> gFoldMapCSumCtr @tag lr
 
 instance GFoldMapSumConsByte m (C1 c f) where
     gFoldMapSumConsByte _ = undefined
@@ -44,30 +47,31 @@ instance GFoldMapSumConsByte m V1 where
 
 -- | Sum type handler handling constructors only. Useful if you handle
 --   constructor prefixes elsewhere.
-class GFoldMapCSumCtr m f where gFoldMapCSumCtr :: f p -> m
+class GFoldMapCSumCtr tag f where gFoldMapCSumCtr :: f p -> GenericFoldMapM tag
 
-instance (GFoldMapCSumCtr m l, GFoldMapCSumCtr m r)
-  => GFoldMapCSumCtr m (l :+: r) where
-    gFoldMapCSumCtr = \case L1 l -> gFoldMapCSumCtr l
-                            R1 r -> gFoldMapCSumCtr r
+instance (GFoldMapCSumCtr tag l, GFoldMapCSumCtr tag r)
+  => GFoldMapCSumCtr tag (l :+: r) where
+    gFoldMapCSumCtr = \case L1 l -> gFoldMapCSumCtr @tag l
+                            R1 r -> gFoldMapCSumCtr @tag r
 
-instance GFoldMapC m f => GFoldMapCSumCtr m (C1 c f) where
-    gFoldMapCSumCtr (M1 a) = gFoldMapC a
+instance GFoldMapC tag f => GFoldMapCSumCtr tag (C1 c f) where
+    gFoldMapCSumCtr (M1 a) = gFoldMapC @tag a
 
 ---
 
-class GFoldMapCSumCtrArityByte m (arity :: Natural) f where
-    gFoldMapCSumCtrArityByte :: (Word8 -> m) -> f p -> m
+class GFoldMapCSumCtrArityByte tag (arity :: Natural) f where
+    gFoldMapCSumCtrArityByte
+        :: (Word8 -> GenericFoldMapM tag) -> f p -> GenericFoldMapM tag
 
 instance
-  ( GFoldMapCSumCtrArityByte m arity l
-  , GFoldMapCSumCtrArityByte m (arity + SumArity l) r
-  ) => GFoldMapCSumCtrArityByte m arity (l :+: r) where
+  ( GFoldMapCSumCtrArityByte tag arity l
+  , GFoldMapCSumCtrArityByte tag (arity + SumArity l) r
+  ) => GFoldMapCSumCtrArityByte tag arity (l :+: r) where
     gFoldMapCSumCtrArityByte f = \case
-      L1 l -> gFoldMapCSumCtrArityByte @m @arity                f l
-      R1 r -> gFoldMapCSumCtrArityByte @m @(arity + SumArity l) f r
+      L1 l -> gFoldMapCSumCtrArityByte @tag @arity                f l
+      R1 r -> gFoldMapCSumCtrArityByte @tag @(arity + SumArity l) f r
 
-instance KnownNat arity => GFoldMapCSumCtrArityByte m arity (C1 c f) where
+instance KnownNat arity => GFoldMapCSumCtrArityByte tag arity (C1 c f) where
     gFoldMapCSumCtrArityByte f _ = f (fromIntegral (natVal'' @arity))
 
 ---
