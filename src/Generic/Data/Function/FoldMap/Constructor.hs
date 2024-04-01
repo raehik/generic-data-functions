@@ -9,15 +9,18 @@ import Data.Kind ( type Constraint, type Type )
 import Generic.Data.Function.Via
 import GHC.TypeLits ( TypeError )
 
--- | 'Monoid's that can be generically 'foldMap'ped to.
+-- | Implementation enumeration type class for generic 'foldMap'.
+--
+-- The type variable is uninstantiated, used purely as a tag.
+--
+-- Avoid orphan instances by defining custom empty types to use here.
+-- See the binrep library on Hackage for an example.
 class GenericFoldMap tag where
     -- | The target 'Monoid' to 'foldMap' to.
     type GenericFoldMapM tag :: Type
 
-    -- | The type class that enables mapping permitted types to the monoid.
-    --
-    -- The type class should provide a function that looks like
-    -- 'genericFoldMapF'.
+    -- | The type class providing the "map" function in 'foldMap' for permitted
+    --   types.
     type GenericFoldMapC tag a :: Constraint
 
     -- | The "map" function in 'foldMap' (first argument).

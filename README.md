@@ -2,40 +2,28 @@
 [hackage-megaparsec]: https://hackage.haskell.org/package/megaparsec
 
 # generic-data-functions
-A small Haskell library providing some funky generics that work over arbitrary
-Haskell data types. We handle the sums of products representation; you only need
-to pass a handful of definitions. Obtain simple, type-safe generic
-serializers/reducers and parsers for almost zero effort.
+Generic functions that approximate familiar term-level functions. The generics
+handle the sum of products representation and have "holes" for the base case,
+which must be filled by the user via a type class. Perhaps you may also think of
+these as "reusable" or "generic" generics.
 
-Well, OK, so really this is a generic binary serialization library. It just so
-happens that the generics look like `foldMap` and `traverse`.
+Most relevant for simple parsing and printing/serializing/reducing tasks where
+the only "work" to do for the given data type is mechanical field sequencing.
+If you require more logic than that (and can't place it in types/newtypes), you
+will not be able to use this library.
 
-## Really?
-Kind of. We only handle *sequential concatenation*, being cleanly represented by
-builtin type classes. Weirder cases like JSON parsing/serialization have more
-going on, and aren't sensibly discussed generically. So you are probably only
-going to use this with bytestrings and simple binary formats.
+## Rationale
+There are a number of competing parsing and serialization Haskell libraries.
+Most have a type class for enumerating permitted types, and some simple generics
+which use that type class for the base case. Other than that base case, everyone
+is writing largely the same generic code.
 
-## Why?
-It is 2023. There are a number of competing parsing and serialization Haskell
-libraries, recently some notable high-performance ones. These are often fairly
-experimental. Maybe you want some generics to benchmark some real-world use case
-against popular libraries like binary and cereal. But maybe generics aren't
-provided. Shucks.
-
-That's a shame, because a binary/cereal-esque generic binary parser or
-serializer doesn't have much work to do:
-
-  * traverse the generic sum-of-products tree of the given type left to right
-  * defer to the appropriate type class for base cases
-
-Sum types necessitate a little more work. Otherwise, most such parsers and
-serializers look fairly comparable to each other. Why are we rewriting this
-stuff over and over again?
-
-generic-data-functions provides *reusable generics* which have holes in for your
-favorite parsers and serializers. Fill out a few definitions to receive a fresh
-new generic instance for your own library, without all the boilerplate.
+While writing my own libraries, I realized that if another developer wanted use
+my serializer, they would probably need to write their own type class for base
+cases (due to some specific library design). Alas, this would mean they have to
+copy-paste my generics and swap the type classes. Very silly. But it turned out
+my generics were otherwise highly general, so I spun them out into this library.
+Now you can swap the type class just by filling in some holes.
 
 ## Functions
 ### `foldMap` (L->R)
