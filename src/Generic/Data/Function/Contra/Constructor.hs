@@ -1,10 +1,5 @@
-{- TODO
-* I use conquer in general, but for EmptyRec0 I need to use mempty. Feels a
-  little weird. conquer *should* be the same as mempty, but I'm not sure we can
-  guarantee it.
--}
-
 {-# LANGUAGE UndecidableInstances #-} -- due to type class design
+{-# LANGUAGE AllowAmbiguousTypes  #-} -- due to type class design
 
 module Generic.Data.Function.Contra.Constructor where
 
@@ -12,33 +7,45 @@ import Data.Functor.Contravariant
 import Data.Functor.Contravariant.Divisible
 
 import GHC.Generics
-import Data.Kind ( type Constraint )
+import Data.Kind ( type Type, type Constraint )
 
-import Generic.Data.Function.Via
+import Generic.Data.Wrappers ( NoRec0, type ENoRec0, EmptyRec0 )
 import GHC.TypeLits ( TypeError )
 
-class GenericContra f where
-    -- TODO probs don't want the a ?
-    type GenericContraC f a :: Constraint
-    genericContraF :: GenericContraC f a => f a
+class GenericContra tag where
+    type GenericContraF tag :: Type -> Type
+    type GenericContraC tag a :: Constraint
+    -- TODO added Divisible
+    genericContraF
+        :: (GenericContraC tag a, Divisible (GenericContraF tag))
+        => GenericContraF tag a
 
 -- | over types with no fields in any constructor
-instance GenericContra NoRec0 where
-    type GenericContraC NoRec0 _ = TypeError ENoRec0
+instance GenericContra (NoRec0 (f :: Type -> Type)) where
+    type GenericContraF (NoRec0 f) = f
+    type GenericContraC (NoRec0 f) _ = TypeError ENoRec0
     genericContraF = undefined
 
 -- | over types where all fields map to 'mempty'
-instance GenericContra EmptyRec0 where
-    type GenericContraC EmptyRec0 a = Monoid a
-    genericContraF = EmptyRec0 mempty
+instance GenericContra (EmptyRec0 (f :: Type -> Type)) where
+    type GenericContraF (EmptyRec0 f) = f
+    type GenericContraC (EmptyRec0 f) a = ()
+    genericContraF = conquer
+    -- TODO by adding Divisible f we don't need (Monoid a)/mempty any more
 
-class GContraC f g where gContraC :: f (g p)
+class GContraC tag gf where gContraC :: GenericContraF tag (gf p)
 
-instance (Divisible f, GContraC f l, GContraC f r)
-  => GContraC f (l :*: r) where
-    gContraC = divide (\(l :*: r) -> (l, r)) gContraC gContraC
+instance
+  ( Divisible (GenericContraF tag)
+  , GContraC tag l, GContraC tag r
+  ) => GContraC tag (l :*: r) where
+    gContraC = divide (\(l :*: r) -> (l, r)) (gContraC @tag) (gContraC @tag)
 
-instance (Contravariant f, GenericContra f, GenericContraC f a) => GContraC f (S1 c (Rec0 a)) where
-    gContraC = contramap (unK1 . unM1) genericContraF
+instance
+  ( Divisible (GenericContraF tag)
+  , GenericContra tag, GenericContraC tag a
+  ) => GContraC tag (S1 c (Rec0 a)) where
+    gContraC = contramap (unK1 . unM1) (genericContraF @tag)
 
-instance Divisible f => GContraC f U1 where gContraC = conquer
+instance Divisible (GenericContraF tag) => GContraC tag U1 where
+    gContraC = conquer

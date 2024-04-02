@@ -27,26 +27,26 @@ import Data.Text qualified as Text
 
 -- | Generic 'traverse' over a term of non-sum data type @f a@.
 genericTraverseNonSum
-    :: forall {cd} {gf} asserts f a
+    :: forall {cd} {gf} asserts tag a
     .  ( Generic a, Rep a ~ D1 cd gf
-       , GTraverseNonSum cd f gf
-       , ApplyGCAsserts asserts f
-       , Functor f)
-    => f a
-genericTraverseNonSum = (to . M1) <$> gTraverseNonSum @cd
+       , GTraverseNonSum cd tag gf
+       , ApplyGCAsserts asserts tag
+       , Functor (GenericTraverseF tag))
+    => GenericTraverseF tag a
+genericTraverseNonSum = (to . M1) <$> gTraverseNonSum @cd @tag
 
 -- | Generic 'traverse' over a term of sum data type @f a@.
 --
 -- You must provide a configuration for how to handle constructors.
 genericTraverseSum
-    :: forall {cd} {gf} opts asserts f a pt
+    :: forall {cd} {gf} opts asserts tag a pt
     .  ( Generic a, Rep a ~ D1 cd gf
-       , GTraverseSum opts cd f gf
-       , ApplyGCAsserts asserts f
-       , GenericTraverseC f pt, Functor f)
+       , GTraverseSum opts cd tag gf
+       , ApplyGCAsserts asserts tag
+       , GenericTraverseC tag pt, Functor (GenericTraverseF tag))
     => PfxTagCfg pt
-    -> f a
-genericTraverseSum ptc = (to . M1) <$> gTraverseSum @opts @cd ptc
+    -> GenericTraverseF tag a
+genericTraverseSum ptc = (to . M1) <$> gTraverseSum @opts @cd @tag ptc
 
 -- | Construct a prefix tag config using existing 'Eq' and 'Show' instances.
 --

@@ -9,6 +9,13 @@
   * highly granular constraints nice for writing, perhaps worse for type errors?
   * use `Tagged` instead of newtype spam for via?
 
+## Design points
+### Stuff constraints into implementation enumerators instead of use sites
+Idk. I like how it is, but it's certainly messy.
+
+### GHC 9.10: Use explicit types (`RequiredTypeArguments`)
+Will be a while until GHC 9.10 is stable for NixOS, so long-term task.
+
 ### Don't keep writing `D1` unwrappers
 ```haskell
 genericFoldMapSum'
@@ -30,6 +37,3 @@ well with `GHC.Generic`'s concept of solving everything with type classes. Sure,
 I could write more structured generic traversals, but now you need carry around
 more requirements, and I'm not sure if I'd be giving up performance. (Do I care
 enough about that, though...?)
-
-### GHC 9.10: Use explicit types (`RequiredTypeArguments`)
-Will be a while until GHC 9.10 is stable for NixOS, so long-term task.

@@ -55,6 +55,9 @@ Useful for:
 
   * simple binary parsers which can parse generic `foldMap` output
 
+### `contra`
+I don't know what this is exactly. It's like contramap?
+
 ## Notes
 ### Orphan instances
 This library is designed to work with and around existing libraries and type

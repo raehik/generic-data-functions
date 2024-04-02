@@ -6,7 +6,7 @@ module Generic.Data.Function.FoldMap.Constructor where
 import GHC.Generics
 import Data.Kind ( type Constraint, type Type )
 
-import Generic.Data.Function.Via
+import Generic.Data.Wrappers ( NoRec0, type ENoRec0, EmptyRec0 )
 import GHC.TypeLits ( TypeError )
 
 -- | Implementation enumeration type class for generic 'foldMap'.
@@ -19,15 +19,15 @@ class GenericFoldMap tag where
     -- | The target 'Monoid' to 'foldMap' to.
     type GenericFoldMapM tag :: Type
 
-    -- | The type class providing the "map" function in 'foldMap' for permitted
+    -- | The type class providing the map function in 'foldMap' for permitted
     --   types.
     type GenericFoldMapC tag a :: Constraint
 
-    -- | The "map" function in 'foldMap' (first argument).
+    -- | The map function in 'foldMap' (first argument).
     genericFoldMapF :: GenericFoldMapC tag a => a -> GenericFoldMapM tag
 
 -- | 'foldMap' over types with no fields in any constructor.
-instance GenericFoldMap (NoRec0 m) where
+instance GenericFoldMap (NoRec0 (m :: Type)) where
     type GenericFoldMapM (NoRec0 m)   = m
     type GenericFoldMapC (NoRec0 m) _ = TypeError ENoRec0
     genericFoldMapF = undefined

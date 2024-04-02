@@ -1,39 +1,49 @@
--- {-# LANGUAGE UndecidableInstances #-} -- due to typeclass design
+{-# LANGUAGE UndecidableInstances #-} -- due to typeclass design
 {-# LANGUAGE AllowAmbiguousTypes #-}  -- due to typeclass design
 
 module Generic.Data.Function.Contra.Sum where
 
 import GHC.Generics
 import Generic.Data.Function.Util.Generic ( conName' )
-import Generic.Data.Function.Contra.Constructor ( GContraC(gContraC) )
+import Generic.Data.Function.Contra.Constructor
+  ( GContraC(gContraC)
+  , GenericContra(type GenericContraF)
+  )
 import Generic.Data.Rep.Error
 import Generic.Data.Function.Common
 
 import Data.Functor.Contravariant.Divisible
 
-class GContraSum (opts :: SumOpts) f g where
-    gContraSum :: f String -> f (g p)
+class GContraSum (opts :: SumOpts) tag gf where
+    gContraSum :: GenericContraF tag String -> GenericContraF tag (gf p)
 
-instance GContraCSum f (l :+: r) => GContraSum opts f (l :+: r) where
-    gContraSum = gContraCSum
+instance GContraCSum tag (l :+: r) => GContraSum opts tag (l :+: r) where
+    gContraSum = gContraCSum @tag
 
-instance GContraSum 'SumOnly f (C1 c g) where
+instance GContraSum 'SumOnly tag (C1 c g) where
     gContraSum = error eNeedSum
 
-instance GContraCSum f (C1 c g)
-  => GContraSum 'AllowSingletonSum f (C1 c g) where
-    gContraSum = gContraCSum
+instance GContraCSum tag (C1 c g)
+  => GContraSum 'AllowSingletonSum tag (C1 c g) where
+    gContraSum = gContraCSum @tag
 
-instance GContraSum opts f V1 where
+instance GContraSum opts tag V1 where
     gContraSum = error eNoEmpty
 
 -- TODO rename (? had this on foldmap sum)
-class GContraCSum f g where gContraCSum :: f String -> f (g p)
+class GContraCSum tag gf where
+    gContraCSum :: GenericContraF tag String -> GenericContraF tag (gf p)
 
-instance (Decidable f, GContraCSum f l, GContraCSum f r)
-  => GContraCSum f (l :+: r) where
-    gContraCSum f = choose genericSumToEither (gContraCSum f) (gContraCSum f)
+instance
+  ( Decidable (GenericContraF tag)
+  , GContraCSum tag l
+  , GContraCSum tag r
+  ) => GContraCSum tag (l :+: r) where
+    gContraCSum f = choose genericSumToEither (gContraCSum @tag f) (gContraCSum @tag f)
       where genericSumToEither = \case L1 l -> Left l; R1 r -> Right r
 
-instance (Divisible f, GContraC f g, Constructor c) => GContraCSum f (C1 c g) where
-    gContraCSum f = divide (\(M1 g) -> (conName' @c, g)) f gContraC
+instance
+  ( Divisible (GenericContraF tag)
+  , GContraC tag gf, Constructor c
+  ) => GContraCSum tag (C1 c gf) where
+    gContraCSum f = divide (\(M1 g) -> (conName' @c, g)) f (gContraC @tag)

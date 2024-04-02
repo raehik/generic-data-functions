@@ -1,6 +1,5 @@
 {-# LANGUAGE UndecidableInstances #-} -- due to type class design
-{-# LANGUAGE AllowAmbiguousTypes #-}  -- due to type class design
-{-# LANGUAGE ApplicativeDo #-} -- TODO because I'm lazy
+{-# LANGUAGE AllowAmbiguousTypes  #-}  -- due to type class design
 
 module Generic.Data.Function.Traverse.Constructor where
 
@@ -9,21 +8,28 @@ import GHC.TypeNats ( Natural, KnownNat, type (+) )
 import Generic.Data.Function.Util.Generic ( datatypeName', conName', selName'' )
 import Generic.Data.Function.Util.TypeNats ( natVal'' )
 
-import Control.Applicative ( liftA2 ) -- not needed from GHC 9.6
+import Control.Applicative qualified as Applicative
+import Control.Applicative ( Alternative(empty) )
 
 import Data.Kind ( type Type, type Constraint )
 
-import Generic.Data.Function.Via
+import Generic.Data.Wrappers ( NoRec0, type ENoRec0, EmptyRec0 )
 import GHC.TypeLits ( TypeError )
 
-import Data.Monoid
-data A a = A a (Sum Int) ()
-    deriving stock (Generic, Show)
+-- import Data.Monoid
 
--- | 'Applicative' functors that can be generically 'traverse'd.
-class GenericTraverse f where
-    -- | The type class providing (applicative) actions for permitted types.
-    type GenericTraverseC f a :: Constraint
+-- | Implementation enumeration type class for generic 'traverse'.
+--
+-- The type variable is uninstantiated, used purely as a tag.
+--
+-- Avoid orphan instances by defining custom empty types to use here.
+-- See the binrep library on Hackage for an example.
+class GenericTraverse tag where
+    -- | The target 'Applicative' to 'traverse' to.
+    type GenericTraverseF tag :: Type -> Type
+
+    -- | The type class providing the action in 'traverse' for permitted types.
+    type GenericTraverseC tag a :: Constraint
 
     -- | The action in 'traverse' (first argument).
     --
@@ -31,47 +37,55 @@ class GenericTraverse f where
     -- parsers, which can record it in error messages. (We don't do it for
     -- foldMap because it's pure.)
     genericTraverseAction
-        :: GenericTraverseC f a
+        :: GenericTraverseC tag a
         => String       {- ^ data type name -}
         -> String       {- ^ constructor name -}
         -> Maybe String {- ^ record name (if present) -}
         -> Natural      {- ^ field index -}
-        -> f a
+        -> GenericTraverseF tag a
 
 -- | 'traverse' over types with no fields in any constructor.
-instance GenericTraverse NoRec0 where
-    type GenericTraverseC NoRec0 a = TypeError ENoRec0
+instance GenericTraverse (NoRec0 (f :: Type -> Type)) where
+    type GenericTraverseF (NoRec0 f) = f
+    type GenericTraverseC (NoRec0 _) _ = TypeError ENoRec0
     genericTraverseAction = undefined
 
--- | 'traverse' over types where all fields map to their respective 'mempty'.
+-- | 'traverse' over types where all fields are replaced with the functor's
+--   'empty'.
 --
--- Can result in type errors lacking context: a field missing a 'Monoid'
--- instance will type error with a regular "no instance for" message, without
--- telling you the surrounding type.
---
--- Maybe silly.
-instance GenericTraverse EmptyRec0 where
-    type GenericTraverseC EmptyRec0 a = Monoid a
-    genericTraverseAction _ _ _ _ = EmptyRec0 mempty
+-- Note that one may write a valid instance using a 'Monoid' on @a@s instead.
+-- I don't think you should. But I can't explain why.
+instance GenericTraverse (EmptyRec0 (f :: Type -> Type)) where
+    type GenericTraverseF (EmptyRec0 f) = f
+    type GenericTraverseC (EmptyRec0 f) _ = Alternative f
+    genericTraverseAction _ _ _ _ = empty
 
-class GTraverseC cd cc (si :: Natural) f f' where gTraverseC :: f (f' p)
+class GTraverseC cd cc (si :: Natural) tag gf where
+    gTraverseC :: GenericTraverseF tag (gf p)
 
-instance (Applicative f, GTraverseC cd cc si f l, GTraverseC cd cc (si + ProdArity r) f r)
-  => GTraverseC cd cc si f (l :*: r) where
-    gTraverseC = liftA2 (:*:)
-                   (gTraverseC @cd @cc @si)
-                   (gTraverseC @cd @cc @(si + ProdArity r))
+instance
+  ( Applicative (GenericTraverseF tag)
+  , GTraverseC cd cc si                 tag l
+  , GTraverseC cd cc (si + ProdArity r) tag r
+  ) => GTraverseC cd cc si tag (l :*: r) where
+    gTraverseC = Applicative.liftA2 (:*:)
+                   (gTraverseC @cd @cc @si                 @tag)
+                   (gTraverseC @cd @cc @(si + ProdArity r) @tag)
 
-instance (GenericTraverse f, GenericTraverseC f a, Functor f, KnownNat si, Selector cs, Constructor cc, Datatype cd)
-  => GTraverseC cd cc si f (S1 cs (Rec0 a)) where
-    gTraverseC = (M1 . K1) <$> genericTraverseAction cd cc cs si
+instance
+  ( GenericTraverse tag, GenericTraverseC tag a
+  , Functor (GenericTraverseF tag)
+  , KnownNat si, Selector cs, Constructor cc, Datatype cd
+  ) => GTraverseC cd cc si tag (S1 cs (Rec0 a)) where
+    gTraverseC = (M1 . K1) <$> genericTraverseAction @tag cd cc cs si
       where
         cs = selName'' @cs
         cd = datatypeName' @cd
         cc = conName' @cc
         si = natVal'' @si
 
-instance Applicative f => GTraverseC cd cc 0 f U1 where gTraverseC = pure U1
+instance Applicative (GenericTraverseF tag) => GTraverseC cd cc 0 tag U1 where
+    gTraverseC = pure U1
 
 type family ProdArity (f :: Type -> Type) :: Natural where
     ProdArity (S1 c f)  = 1

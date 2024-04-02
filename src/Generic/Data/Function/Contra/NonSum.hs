@@ -1,16 +1,22 @@
+{-# LANGUAGE UndecidableInstances #-} -- due to type class design
+{-# LANGUAGE AllowAmbiguousTypes  #-} -- due to type class design
+
 module Generic.Data.Function.Contra.NonSum where
 
 import Data.Functor.Contravariant
 
 import GHC.Generics
-import Generic.Data.Function.Contra.Constructor ( GContraC(gContraC) )
+import Generic.Data.Function.Contra.Constructor
+  ( GContraC(gContraC)
+  , GenericContra(type GenericContraF)
+  )
 import Generic.Data.Rep.Error
 
-class GContraNonSum f g where gContraNonSum :: f (g p)
+class GContraNonSum tag gf where gContraNonSum :: GenericContraF tag (gf p)
 
-instance (Contravariant f, GContraC f g)
-  => GContraNonSum f (C1 c g) where
-    gContraNonSum = contramap unM1 gContraC
+instance (Contravariant (GenericContraF tag), GContraC tag g)
+  => GContraNonSum tag (C1 c g) where
+    gContraNonSum = contramap unM1 (gContraC @tag)
 
-instance GContraNonSum f (l :+: r) where gContraNonSum = error eNoSum
-instance GContraNonSum f V1        where gContraNonSum = error eNoEmpty
+instance GContraNonSum tag (l :+: r) where gContraNonSum = error eNoSum
+instance GContraNonSum tag V1        where gContraNonSum = error eNoEmpty

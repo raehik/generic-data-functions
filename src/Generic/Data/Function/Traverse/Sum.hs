@@ -1,11 +1,14 @@
 {-# LANGUAGE UndecidableInstances #-} -- required below GHC 9.6
-{-# LANGUAGE AllowAmbiguousTypes #-} -- required due to generic typeclass design
+{-# LANGUAGE AllowAmbiguousTypes  #-} -- due to generic typeclass design
 
 module Generic.Data.Function.Traverse.Sum where
 
 import GHC.Generics
 import Generic.Data.Function.Util.Generic ( datatypeName', conName' )
-import Generic.Data.Function.Traverse.Constructor ( GTraverseC(gTraverseC), GenericTraverse(..) )
+import Generic.Data.Function.Traverse.Constructor
+  ( GTraverseC(gTraverseC)
+  , GenericTraverse(type GenericTraverseF, type GenericTraverseC)
+  )
 import Generic.Data.Rep.Error
 import Generic.Data.Function.Common
 
@@ -15,16 +18,16 @@ import Control.Applicative ( Alternative((<|>)) )
 
 {- | Sum type monads that can be generically 'traverse'd.
 
-For sum types, we require a monad with choice to differentiate constructors.
+We use 'Alternative' to handle "which constructor" checking on the term level.
 -}
-class (GenericTraverse f, Alternative f, Monad f) => GenericTraverseSum f where
+class GenericTraverse tag => GenericTraverseSum tag where
     -- | Try to parse a prefix tag of type 'pt'.
     --
     -- Relevant metadata is provided as arguments.
     genericTraverseSumPfxTagAction
-        :: GenericTraverseC f pt
+        :: GenericTraverseC tag pt
         => String   -- ^ data type name
-        -> f pt
+        -> GenericTraverseF tag pt
 
     -- | Parse error due to no constructor matching the parsed prefix tag.
     --
@@ -33,7 +36,7 @@ class (GenericTraverse f, Alternative f, Monad f) => GenericTraverseSum f where
         :: String   -- ^ data type name
         -> [String] -- ^ non-matching constructor names
         -> Text     -- ^ prefix tag, prettified
-        -> f a
+        -> GenericTraverseF tag a
 
 -- | How to use a type as a prefix tag in a generic sum type parser.
 data PfxTagCfg a = PfxTagCfg
@@ -50,52 +53,71 @@ data PfxTagCfg a = PfxTagCfg
   -- ^ Make a prefix tag human-readable. 'show' is often appropriate.
   }
 
-class GTraverseSum (opts :: SumOpts) cd f f' where
-    gTraverseSum :: GenericTraverseC f pt => PfxTagCfg pt -> f (f' p)
+class GTraverseSum (opts :: SumOpts) cd tag gf where
+    gTraverseSum
+        :: GenericTraverseC tag pt
+        => PfxTagCfg pt -> GenericTraverseF tag (gf p)
 
-instance (GenericTraverseSum f, GTraverseCSum cd f (l :+: r), Datatype cd)
-  => GTraverseSum opts cd f (l :+: r) where
-    gTraverseSum = gTraverseSum' @cd
+instance
+  ( GenericTraverseSum tag, GTraverseCSum cd tag (l :+: r), Datatype cd
+  , Alternative (GenericTraverseF tag)
+  , Monad (GenericTraverseF tag)
+  ) => GTraverseSum opts cd tag (l :+: r) where
+    gTraverseSum = gTraverseSum' @cd @tag
 
 gTraverseSum'
-    :: forall {p} cd f f' pt
-    .  (GenericTraverseC f pt, GenericTraverseSum f, GTraverseCSum cd f f', Datatype cd)
-    => PfxTagCfg pt -> f (f' p)
+    :: forall {p} cd tag gf pt
+    .  ( GenericTraverseC tag pt
+       , Alternative (GenericTraverseF tag)
+       , Monad (GenericTraverseF tag)
+       , GenericTraverseSum tag, GTraverseCSum cd tag gf
+       , Datatype cd
+    ) => PfxTagCfg pt -> GenericTraverseF tag (gf p)
 gTraverseSum' ptc = do
-    pt <- genericTraverseSumPfxTagAction cd
-    gTraverseCSum @cd ptc pt <|> parseErrorNoMatch pt
+    pt <- genericTraverseSumPfxTagAction @tag cd
+    gTraverseCSum @cd @tag ptc pt <|> parseErrorNoMatch pt
   where
     cd = datatypeName' @cd
     parseErrorNoMatch pt =
-        genericTraverseSumNoMatchingCstrAction cd testedCstrs ((pfxTagCfgShow ptc) pt)
+        genericTraverseSumNoMatchingCstrAction @tag cd testedCstrs ((pfxTagCfgShow ptc) pt)
     testedCstrs = [] -- TODO
 
-instance GTraverseSum 'SumOnly cd f (C1 cc f') where
+instance GTraverseSum 'SumOnly cd tag (C1 cc gf) where
     gTraverseSum = error eNeedSum
 
-instance (GenericTraverseSum f, GTraverseCSum cd f (C1 cc f'), Datatype cd)
-  => GTraverseSum 'AllowSingletonSum cd f (C1 cc f') where
-    gTraverseSum = gTraverseSum' @cd
+instance
+  ( GenericTraverseSum tag, GTraverseCSum cd tag (C1 cc gf), Datatype cd
+  , Alternative (GenericTraverseF tag)
+  , Monad (GenericTraverseF tag)
+  ) => GTraverseSum 'AllowSingletonSum cd tag (C1 cc gf) where
+    gTraverseSum = gTraverseSum' @cd @tag
 
-instance GTraverseSum opts cd f V1 where
+instance GTraverseSum opts cd tag V1 where
     gTraverseSum = error eNoEmpty
 
--- | Generic getter (constructor sum level).
-class GTraverseCSum cd f f' where
-    gTraverseCSum :: PfxTagCfg pt -> pt -> f (f' p)
+class GTraverseCSum cd tag gf where
+    gTraverseCSum :: PfxTagCfg pt -> pt -> GenericTraverseF tag (gf p)
 
-instance (Functor f, Alternative f, GTraverseCSum cd f l, GTraverseCSum cd f r)
-  => GTraverseCSum cd f (l :+: r) where
+-- | Combine constructor options with '(<|>)' ("or").
+instance
+  ( Alternative (GenericTraverseF tag)
+  , GTraverseCSum cd tag l
+  , GTraverseCSum cd tag r
+  ) => GTraverseCSum cd tag (l :+: r) where
     gTraverseCSum ptc pt = l <|> r
       where
-        l = L1 <$> gTraverseCSum @cd ptc pt
-        r = R1 <$> gTraverseCSum @cd ptc pt
+        l = L1 <$> gTraverseCSum @cd @tag ptc pt
+        r = R1 <$> gTraverseCSum @cd @tag ptc pt
 
-instance (Alternative f, GTraverseC cd cc 0 f f', Constructor cc)
-  => GTraverseCSum cd f (C1 cc f') where
+-- | If the constructor matches the expected prefix tag, then return the action
+--   handling that constructor's contents, else return the empty action.
+instance
+  ( Alternative (GenericTraverseF tag)
+  , GTraverseC cd cc 0 tag gf, Constructor cc
+  ) => GTraverseCSum cd tag (C1 cc gf) where
     gTraverseCSum ptc pt = do
         if   (pfxTagCfgEq ptc) pt ptCstr
-        then M1 <$> gTraverseC @cd @cc @0
+        then M1 <$> gTraverseC @cd @cc @0 @tag
         else Applicative.empty
       where
         ptCstr = (pfxTagCfgFromCstr ptc) (conName' @cc)

@@ -18,13 +18,13 @@ import Data.Functor.Contravariant
 --
 -- @a@ must have exactly one constructor.
 genericContraNonSum
-    :: forall {cd} {g} asserts f a
-    .  ( Generic a, Rep a ~ D1 cd g
-       , GContraNonSum f g
-       , ApplyGCAsserts asserts g
-       , Contravariant f)
-    => f a
-genericContraNonSum = contramap (unM1 . from) gContraNonSum
+    :: forall {cd} {gf} asserts tag a
+    .  ( Generic a, Rep a ~ D1 cd gf
+       , GContraNonSum tag gf
+       , ApplyGCAsserts asserts gf
+       , Contravariant (GenericContraF tag))
+    => GenericContraF tag a
+genericContraNonSum = contramap (unM1 . from) (gContraNonSum @tag)
 
 -- | Generic contra over a term of sum data type @a@.
 --
@@ -33,11 +33,11 @@ genericContraNonSum = contramap (unM1 . from) gContraNonSum
 -- This is the most generic option, but depending on your string manipulation
 -- may be slower.
 genericContraSum
-    :: forall {cd} {g} opts asserts f a
-    .  ( Generic a, Rep a ~ D1 cd g
-       , GContraSum opts f g
-       , ApplyGCAsserts asserts g
-       , Contravariant f)
-    => (f String)
-    -> f a
-genericContraSum f = contramap (unM1 . from) (gContraSum @opts f)
+    :: forall {cd} {gf} opts asserts tag a
+    .  ( Generic a, Rep a ~ D1 cd gf
+       , GContraSum opts tag gf
+       , ApplyGCAsserts asserts gf
+       , Contravariant (GenericContraF tag))
+    => GenericContraF tag String
+    -> GenericContraF tag a
+genericContraSum f = contramap (unM1 . from) (gContraSum @opts @tag f)
