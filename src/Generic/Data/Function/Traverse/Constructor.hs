@@ -21,8 +21,8 @@ import GHC.TypeLits ( TypeError )
 -- | Implementation enumeration type class for generic 'traverse'.
 --
 -- The type variable is uninstantiated, used purely as a tag.
---
--- Avoid orphan instances by defining custom empty types to use here.
+-- Good types include the type class used inside (providing you define the
+-- type class/it's not an orphan instance), or a custom void data type.
 -- See the binrep library on Hackage for an example.
 class GenericTraverse tag where
     -- | The target 'Applicative' to 'traverse' to.

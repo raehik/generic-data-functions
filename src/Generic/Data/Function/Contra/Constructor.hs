@@ -12,6 +12,12 @@ import Data.Kind ( type Type, type Constraint )
 import Generic.Data.Wrappers ( NoRec0, type ENoRec0, EmptyRec0 )
 import GHC.TypeLits ( TypeError )
 
+-- | TODO
+--
+-- The type variable is uninstantiated, used purely as a tag.
+-- Good types include the type class used inside (providing you define the
+-- type class/it's not an orphan instance), or a custom void data type.
+-- See the binrep library on Hackage for an example.
 class GenericContra tag where
     type GenericContraF tag :: Type -> Type
     type GenericContraC tag a :: Constraint
