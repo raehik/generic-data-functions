@@ -47,12 +47,11 @@ import Data.Word ( Word8 )
 --
 -- @a@ must have exactly one constructor.
 genericFoldMapNonSum
-    :: forall {cd} {f} asserts tag {m} a
-    .  ( Generic a, Rep a ~ D1 cd f
-       , m ~ GenericFoldMapM tag
-       , GFoldMapNonSum tag f
-       , ApplyGCAsserts asserts f)
-    => a -> m
+    :: forall {cd} {gf} asserts tag a
+    .  ( Generic a, Rep a ~ D1 cd gf
+       , GFoldMapNonSum tag gf
+       , ApplyGCAsserts asserts gf)
+    => a -> GenericFoldMapM tag
 genericFoldMapNonSum = gFoldMapNonSum @tag . unM1 . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@.
@@ -62,13 +61,12 @@ genericFoldMapNonSum = gFoldMapNonSum @tag . unM1 . from
 -- This is the most generic option, but depending on your string manipulation
 -- may be slower.
 genericFoldMapSum
-    :: forall {cd} {f} opts asserts tag {m} a
-    .  ( Generic a, Rep a ~ D1 cd f
-       , m ~ GenericFoldMapM tag
-       , GFoldMapSum opts tag f
-       , ApplyGCAsserts asserts f)
-    => (String -> m)
-    -> a -> m
+    :: forall {cd} {gf} opts asserts tag a
+    .  ( Generic a, Rep a ~ D1 cd gf
+       , GFoldMapSum opts tag gf
+       , ApplyGCAsserts asserts gf)
+    => (String -> GenericFoldMapM tag)
+    -> a -> GenericFoldMapM tag
 genericFoldMapSum f = gFoldMapSum @opts @tag f . unM1 . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@ where constructors are
@@ -81,8 +79,8 @@ genericFoldMapSum f = gFoldMapSum @opts @tag f . unM1 . from
 -- This should be fairly fast, but sadly I think it's slower than the generics
 -- in store and binary/cereal libraries.
 genericFoldMapSumConsByte
-    :: forall tag {m} a
-    .  (m ~ GenericFoldMapM tag, Generic a, GFoldMapSumConsByte tag (Rep a))
-    => (Word8 -> m)
-    -> a -> m
+    :: forall tag a
+    .  (Generic a, GFoldMapSumConsByte tag (Rep a))
+    => (Word8 -> GenericFoldMapM tag)
+    -> a -> GenericFoldMapM tag
 genericFoldMapSumConsByte f = gFoldMapSumConsByte @tag f . from

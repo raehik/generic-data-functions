@@ -27,10 +27,10 @@ import Data.Text qualified as Text
 
 -- | Generic 'traverse' over a term of non-sum data type @f a@.
 genericTraverseNonSum
-    :: forall {cd} {gf} asserts tag a
+    :: forall {cd} {gf} {k} asserts (tag :: k) a
     .  ( Generic a, Rep a ~ D1 cd gf
        , GTraverseNonSum cd tag gf
-       , ApplyGCAsserts asserts tag
+       , ApplyGCAsserts asserts gf
        , Functor (GenericTraverseF tag))
     => GenericTraverseF tag a
 genericTraverseNonSum = (to . M1) <$> gTraverseNonSum @cd @tag
@@ -42,7 +42,7 @@ genericTraverseSum
     :: forall {cd} {gf} opts asserts tag a pt
     .  ( Generic a, Rep a ~ D1 cd gf
        , GTraverseSum opts cd tag gf
-       , ApplyGCAsserts asserts tag
+       , ApplyGCAsserts asserts gf
        , GenericTraverseC tag pt, Functor (GenericTraverseF tag))
     => PfxTagCfg pt
     -> GenericTraverseF tag a
