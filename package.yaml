@@ -1,5 +1,5 @@
 name: generic-data-functions
-version: 0.2.0
+version: 0.3.0
 synopsis: Familiar functions lifted to generic data types
 description: Please see README.md.
 extra-source-files:
@@ -53,8 +53,7 @@ ghc-options:
 dependencies:
 - base >= 4.14 && < 5
 - text >= 1.2.5.0 && < 2.1
-- contravariant
-- bytestring # TODO tmp
+- contravariant ^>= 1.5.5
 
 library:
   source-dirs: src
