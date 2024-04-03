@@ -1,3 +1,6 @@
+## 0.3.1 (2024-04-03)
+* fix error in traverse types
+
 ## 0.3.0 (2024-04-03)
 * Use type tags, push actual target types into a type family. It means more
   required type annotations, but this is fine by me as I think this library

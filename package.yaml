@@ -1,5 +1,5 @@
 name: generic-data-functions
-version: 0.3.0
+version: 0.3.1
 synopsis: Familiar functions lifted to generic data types
 description: Please see README.md.
 extra-source-files:
