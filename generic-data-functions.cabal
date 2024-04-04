@@ -44,7 +44,6 @@ library
       Generic.Data.Function.Traverse.Sum
       Generic.Data.Function.Util.Generic
       Generic.Data.Function.Util.TypeNats
-      Generic.Data.Rep.Assert
       Generic.Data.Rep.Error
       Generic.Data.Wrappers
   other-modules:

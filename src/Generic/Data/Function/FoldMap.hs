@@ -36,7 +36,6 @@ module Generic.Data.Function.FoldMap
 
 import GHC.Generics
 
-import Generic.Data.Rep.Assert
 import Generic.Data.Function.FoldMap.NonSum
 import Generic.Data.Function.FoldMap.Sum
 import Generic.Data.Function.FoldMap.Constructor
@@ -47,11 +46,10 @@ import Data.Word ( Word8 )
 --
 -- @a@ must have exactly one constructor.
 genericFoldMapNonSum
-    :: forall {cd} {gf} asserts tag a
+    :: forall {cd} {gf} tag a
     .  ( Generic a, Rep a ~ D1 cd gf
        , GFoldMapNonSum tag gf
-       , ApplyGCAsserts asserts gf)
-    => a -> GenericFoldMapM tag
+    ) => a -> GenericFoldMapM tag
 genericFoldMapNonSum = gFoldMapNonSum @tag . unM1 . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@.
@@ -61,11 +59,10 @@ genericFoldMapNonSum = gFoldMapNonSum @tag . unM1 . from
 -- This is the most generic option, but depending on your string manipulation
 -- may be slower.
 genericFoldMapSum
-    :: forall {cd} {gf} opts asserts tag a
+    :: forall {cd} {gf} opts tag a
     .  ( Generic a, Rep a ~ D1 cd gf
        , GFoldMapSum opts tag gf
-       , ApplyGCAsserts asserts gf)
-    => (String -> GenericFoldMapM tag)
+    ) => (String -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
 genericFoldMapSum f = gFoldMapSum @opts @tag f . unM1 . from
 

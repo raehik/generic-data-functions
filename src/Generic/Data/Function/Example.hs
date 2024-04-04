@@ -4,7 +4,6 @@ module Generic.Data.Function.Example where
 
 import GHC.Generics
 import Generic.Data.Function.FoldMap
-import Generic.Data.Rep.Assert
 
 import Data.List qualified as List
 
@@ -22,16 +21,16 @@ instance GenericFoldMap Showly where
     genericFoldMapF = (\a -> [a]) . show
 
 showGeneric
-    :: forall {cd} {f} opts asserts a
-    .  (Generic a, Rep a ~ D1 cd f, GFoldMapSum opts Showly f, ApplyGCAsserts asserts f)
+    :: forall {cd} {f} opts a
+    .  (Generic a, Rep a ~ D1 cd f, GFoldMapSum opts Showly f)
     => a -> String
 showGeneric =
       mconcat . List.intersperse " "
-    . genericFoldMapSum @opts @asserts @Showly (\cstr -> [cstr])
+    . genericFoldMapSum @opts @Showly (\cstr -> [cstr])
 
 showGeneric'
-    :: forall {cd} {f} asserts a
-    .  (Generic a, Rep a ~ D1 cd f, GFoldMapNonSum Showly f, ApplyGCAsserts asserts f)
+    :: forall {cd} {f} a
+    .  (Generic a, Rep a ~ D1 cd f, GFoldMapNonSum Showly f)
     => a -> String
 showGeneric' =
-    mconcat . List.intersperse " " . genericFoldMapNonSum @asserts @Showly
+    mconcat . List.intersperse " " . genericFoldMapNonSum @Showly

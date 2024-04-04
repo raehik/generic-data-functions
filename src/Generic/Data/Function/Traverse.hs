@@ -18,7 +18,6 @@ module Generic.Data.Function.Traverse
 
 import GHC.Generics
 
-import Generic.Data.Rep.Assert
 import Generic.Data.Function.Traverse.NonSum
 import Generic.Data.Function.Traverse.Sum
 import Generic.Data.Function.Traverse.Constructor
@@ -27,24 +26,22 @@ import Data.Text qualified as Text
 
 -- | Generic 'traverse' over a term of non-sum data type @f a@.
 genericTraverseNonSum
-    :: forall {cd} {gf} {k} asserts (tag :: k) a
+    :: forall {cd} {gf} {k} (tag :: k) a
     .  ( Generic a, Rep a ~ D1 cd gf
        , GTraverseNonSum cd tag gf
-       , ApplyGCAsserts asserts gf
-       , Functor (GenericTraverseF tag))
-    => GenericTraverseF tag a
+       , Functor (GenericTraverseF tag)
+    ) => GenericTraverseF tag a
 genericTraverseNonSum = (to . M1) <$> gTraverseNonSum @cd @tag
 
 -- | Generic 'traverse' over a term of sum data type @f a@.
 --
 -- You must provide a configuration for how to handle constructors.
 genericTraverseSum
-    :: forall {cd} {gf} opts asserts tag a pt
+    :: forall {cd} {gf} opts tag a pt
     .  ( Generic a, Rep a ~ D1 cd gf
        , GTraverseSum opts cd tag gf
-       , ApplyGCAsserts asserts gf
-       , GenericTraverseC tag pt, Functor (GenericTraverseF tag))
-    => PfxTagCfg pt
+       , GenericTraverseC tag pt, Functor (GenericTraverseF tag)
+    ) => PfxTagCfg pt
     -> GenericTraverseF tag a
 genericTraverseSum ptc = (to . M1) <$> gTraverseSum @opts @cd @tag ptc
 

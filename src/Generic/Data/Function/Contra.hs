@@ -8,7 +8,6 @@ module Generic.Data.Function.Contra
 
 import GHC.Generics
 
-import Generic.Data.Rep.Assert
 import Generic.Data.Function.Contra.NonSum
 import Generic.Data.Function.Contra.Sum
 import Generic.Data.Function.Contra.Constructor
@@ -18,10 +17,9 @@ import Data.Functor.Contravariant
 --
 -- @a@ must have exactly one constructor.
 genericContraNonSum
-    :: forall {cd} {gf} asserts tag a
+    :: forall {cd} {gf} tag a
     .  ( Generic a, Rep a ~ D1 cd gf
        , GContraNonSum tag gf
-       , ApplyGCAsserts asserts gf
        , Contravariant (GenericContraF tag))
     => GenericContraF tag a
 genericContraNonSum = contramap (unM1 . from) (gContraNonSum @tag)
@@ -33,10 +31,9 @@ genericContraNonSum = contramap (unM1 . from) (gContraNonSum @tag)
 -- This is the most generic option, but depending on your string manipulation
 -- may be slower.
 genericContraSum
-    :: forall {cd} {gf} opts asserts tag a
+    :: forall {cd} {gf} opts tag a
     .  ( Generic a, Rep a ~ D1 cd gf
        , GContraSum opts tag gf
-       , ApplyGCAsserts asserts gf
        , Contravariant (GenericContraF tag))
     => GenericContraF tag String
     -> GenericContraF tag a
