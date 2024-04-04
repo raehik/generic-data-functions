@@ -46,11 +46,10 @@ import Data.Word ( Word8 )
 --
 -- @a@ must have exactly one constructor.
 genericFoldMapNonSum
-    :: forall {cd} {gf} tag a
-    .  ( Generic a, Rep a ~ D1 cd gf
-       , GFoldMapNonSum tag gf
+    :: forall {k} (tag :: k) a
+    .  ( Generic a, GFoldMapNonSum tag (Rep a)
     ) => a -> GenericFoldMapM tag
-genericFoldMapNonSum = gFoldMapNonSum @tag . unM1 . from
+genericFoldMapNonSum = gFoldMapNonSum @tag . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@.
 --
@@ -59,12 +58,11 @@ genericFoldMapNonSum = gFoldMapNonSum @tag . unM1 . from
 -- This is the most generic option, but depending on your string manipulation
 -- may be slower.
 genericFoldMapSum
-    :: forall {cd} {gf} opts tag a
-    .  ( Generic a, Rep a ~ D1 cd gf
-       , GFoldMapSum opts tag gf
+    :: forall {k} opts (tag :: k) a
+    .  ( Generic a, GFoldMapSum opts tag (Rep a)
     ) => (String -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
-genericFoldMapSum f = gFoldMapSum @opts @tag f . unM1 . from
+genericFoldMapSum f = gFoldMapSum @opts @tag f . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@ where constructors are
 -- mapped to their index (distance from first/leftmost constructor)

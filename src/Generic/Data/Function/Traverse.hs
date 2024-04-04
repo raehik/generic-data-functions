@@ -24,26 +24,28 @@ import Generic.Data.Function.Traverse.Constructor
 
 import Data.Text qualified as Text
 
--- | Generic 'traverse' over a term of non-sum data type @f a@.
+-- | Generic 'traverse' over a term of non-sum data type @f a@,
+--   where @f@ is set by the @tag@ you pass.
 genericTraverseNonSum
-    :: forall {cd} {gf} {k} (tag :: k) a
-    .  ( Generic a, Rep a ~ D1 cd gf
-       , GTraverseNonSum cd tag gf
+    :: forall {k} (tag :: k) a
+    .  ( Generic a
        , Functor (GenericTraverseF tag)
+       , GTraverseNonSum tag (Rep a)
     ) => GenericTraverseF tag a
-genericTraverseNonSum = (to . M1) <$> gTraverseNonSum @cd @tag
+genericTraverseNonSum = to <$> gTraverseNonSum @tag
 
--- | Generic 'traverse' over a term of sum data type @f a@.
+-- | Generic 'traverse' over a term of sum data type @f a@,
+--   where @f@ is set by the @tag@ you pass.
 --
 -- You must provide a configuration for how to handle constructors.
 genericTraverseSum
-    :: forall {cd} {gf} opts tag a pt
-    .  ( Generic a, Rep a ~ D1 cd gf
-       , GTraverseSum opts cd tag gf
-       , GenericTraverseC tag pt, Functor (GenericTraverseF tag)
-    ) => PfxTagCfg pt
-    -> GenericTraverseF tag a
-genericTraverseSum ptc = (to . M1) <$> gTraverseSum @opts @cd @tag ptc
+    :: forall {k} (tag :: k) opts a pt
+    .  ( Generic a
+       , Functor (GenericTraverseF tag)
+       , GTraverseSum tag opts (Rep a)
+       , GenericTraverseC tag pt
+    ) => PfxTagCfg pt -> GenericTraverseF tag a
+genericTraverseSum ptc = to <$> gTraverseSum @tag @opts ptc
 
 -- | Construct a prefix tag config using existing 'Eq' and 'Show' instances.
 --

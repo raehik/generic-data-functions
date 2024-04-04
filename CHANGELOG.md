@@ -1,3 +1,11 @@
+## 0.4.0 (2024-04-04)
+* Remove generic representation asserts. We can handle them elsewhere without
+  cluttering type signatures here. (I strongly recommend them, but that's not a
+  reason to keep them here.)
+* Unwrap `D1` in generic type classes rather than handing off to user. This was
+  never really clever or useful, as it turns out. Saved a an extra type class
+  per function, but requires the user to write more weird stuff.
+
 ## 0.3.1 (2024-04-03)
 * fix error in traverse types
 

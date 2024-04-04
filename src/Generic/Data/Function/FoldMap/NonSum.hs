@@ -14,9 +14,12 @@ import Generic.Data.Rep.Error
 Take a generic representation, map each field in the data type to a 'Monoid',
 and combine the results with ('<>').
 -}
-class GFoldMapNonSum tag f where gFoldMapNonSum :: f p -> GenericFoldMapM tag
+class GFoldMapNonSum tag gf where gFoldMapNonSum :: gf p -> GenericFoldMapM tag
 
-instance GFoldMapC tag f => GFoldMapNonSum tag (C1 c f) where
+instance GFoldMapNonSum tag gf => GFoldMapNonSum tag (D1 c gf) where
+    gFoldMapNonSum = gFoldMapNonSum @tag . unM1
+
+instance GFoldMapC tag gf => GFoldMapNonSum tag (C1 c gf) where
     gFoldMapNonSum (M1 a) = gFoldMapC @tag a
 
 instance GFoldMapNonSum tag (l :+: r) where gFoldMapNonSum = error eNoSum

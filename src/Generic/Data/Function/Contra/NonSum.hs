@@ -14,9 +14,15 @@ import Generic.Data.Rep.Error
 
 class GContraNonSum tag gf where gContraNonSum :: GenericContraF tag (gf p)
 
-instance (Contravariant (GenericContraF tag), GContraC tag g)
-  => GContraNonSum tag (C1 c g) where
-    gContraNonSum = contramap unM1 (gContraC @tag)
+instance (Contravariant (GenericContraF tag), GContraNonSumD tag gf)
+  => GContraNonSum tag (C1 c gf) where
+    gContraNonSum = contramap unM1 (gContraNonSumD @tag)
 
-instance GContraNonSum tag (l :+: r) where gContraNonSum = error eNoSum
-instance GContraNonSum tag V1        where gContraNonSum = error eNoEmpty
+class GContraNonSumD tag gf where gContraNonSumD :: GenericContraF tag (gf p)
+
+instance (Contravariant (GenericContraF tag), GContraC tag gf)
+  => GContraNonSumD tag (C1 c gf) where
+    gContraNonSumD = contramap unM1 (gContraC @tag)
+
+instance GContraNonSumD tag (l :+: r) where gContraNonSumD = error eNoSum
+instance GContraNonSumD tag V1        where gContraNonSumD = error eNoEmpty

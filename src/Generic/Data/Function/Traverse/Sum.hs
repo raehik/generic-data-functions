@@ -53,71 +53,80 @@ data PfxTagCfg a = PfxTagCfg
   -- ^ Make a prefix tag human-readable. 'show' is often appropriate.
   }
 
-class GTraverseSum (opts :: SumOpts) cd tag gf where
+class GTraverseSum tag (opts :: SumOpts) gf where
     gTraverseSum
         :: GenericTraverseC tag pt
         => PfxTagCfg pt -> GenericTraverseF tag (gf p)
 
+instance (GTraverseSumD tag cd opts gf, Functor (GenericTraverseF tag)
+  ) => GTraverseSum tag opts (D1 cd gf) where
+    gTraverseSum ptc = M1 <$> gTraverseSumD @tag @cd @opts ptc
+
+class GTraverseSumD tag cd (opts :: SumOpts) gf where
+    gTraverseSumD
+        :: GenericTraverseC tag pt
+        => PfxTagCfg pt -> GenericTraverseF tag (gf p)
+
 instance
-  ( GenericTraverseSum tag, GTraverseCSum cd tag (l :+: r), Datatype cd
+  ( GenericTraverseSum tag, GTraverseCSum tag cd (l :+: r), Datatype cd
   , Alternative (GenericTraverseF tag)
   , Monad (GenericTraverseF tag)
-  ) => GTraverseSum opts cd tag (l :+: r) where
-    gTraverseSum = gTraverseSum' @cd @tag
+  ) => GTraverseSumD tag cd opts (l :+: r) where
+    gTraverseSumD = gTraverseSumD' @tag @cd
 
-gTraverseSum'
-    :: forall {p} cd tag gf pt
+gTraverseSumD'
+    :: forall {p} tag cd gf pt
     .  ( GenericTraverseC tag pt
        , Alternative (GenericTraverseF tag)
        , Monad (GenericTraverseF tag)
-       , GenericTraverseSum tag, GTraverseCSum cd tag gf
+       , GenericTraverseSum tag, GTraverseCSum tag cd gf
        , Datatype cd
     ) => PfxTagCfg pt -> GenericTraverseF tag (gf p)
-gTraverseSum' ptc = do
+gTraverseSumD' ptc = do
     pt <- genericTraverseSumPfxTagAction @tag cd
-    gTraverseCSum @cd @tag ptc pt <|> parseErrorNoMatch pt
+    gTraverseCSum @tag @cd ptc pt <|> parseErrorNoMatch pt
   where
     cd = datatypeName' @cd
     parseErrorNoMatch pt =
         genericTraverseSumNoMatchingCstrAction @tag cd testedCstrs ((pfxTagCfgShow ptc) pt)
     testedCstrs = [] -- TODO
 
-instance GTraverseSum 'SumOnly cd tag (C1 cc gf) where
-    gTraverseSum = error eNeedSum
+instance GTraverseSumD tag cd 'SumOnly (C1 cc gf) where
+    gTraverseSumD = error eNeedSum
 
 instance
-  ( GenericTraverseSum tag, GTraverseCSum cd tag (C1 cc gf), Datatype cd
+  ( GenericTraverseSum tag, GTraverseCSum tag cd (C1 cc gf), Datatype cd
   , Alternative (GenericTraverseF tag)
   , Monad (GenericTraverseF tag)
-  ) => GTraverseSum 'AllowSingletonSum cd tag (C1 cc gf) where
-    gTraverseSum = gTraverseSum' @cd @tag
+  ) => GTraverseSumD tag cd 'AllowSingletonSum (C1 cc gf) where
+    gTraverseSumD = gTraverseSumD' @tag @cd
 
-instance GTraverseSum opts cd tag V1 where
-    gTraverseSum = error eNoEmpty
+instance GTraverseSumD opts tag cd V1 where
+    gTraverseSumD = error eNoEmpty
 
-class GTraverseCSum cd tag gf where
+class GTraverseCSum tag cd gf where
     gTraverseCSum :: PfxTagCfg pt -> pt -> GenericTraverseF tag (gf p)
 
 -- | Combine constructor options with '(<|>)' ("or").
 instance
   ( Alternative (GenericTraverseF tag)
-  , GTraverseCSum cd tag l
-  , GTraverseCSum cd tag r
-  ) => GTraverseCSum cd tag (l :+: r) where
+  , GTraverseCSum tag cd l
+  , GTraverseCSum tag cd r
+  ) => GTraverseCSum tag cd (l :+: r) where
     gTraverseCSum ptc pt = l <|> r
       where
-        l = L1 <$> gTraverseCSum @cd @tag ptc pt
-        r = R1 <$> gTraverseCSum @cd @tag ptc pt
+        l = L1 <$> gTraverseCSum @tag @cd ptc pt
+        r = R1 <$> gTraverseCSum @tag @cd ptc pt
 
 -- | If the constructor matches the expected prefix tag, then return the action
 --   handling that constructor's contents, else return the empty action.
 instance
   ( Alternative (GenericTraverseF tag)
-  , GTraverseC cd cc 0 tag gf, Constructor cc
-  ) => GTraverseCSum cd tag (C1 cc gf) where
+  , GTraverseC tag cd cc 0 gf, Constructor cc
+  ) => GTraverseCSum tag cd (C1 cc gf) where
     gTraverseCSum ptc pt = do
         if   (pfxTagCfgEq ptc) pt ptCstr
-        then M1 <$> gTraverseC @cd @cc @0 @tag
+        then M1 <$> gTraverseC @tag @cd @cc @0
         else Applicative.empty
       where
         ptCstr = (pfxTagCfgFromCstr ptc) (conName' @cc)

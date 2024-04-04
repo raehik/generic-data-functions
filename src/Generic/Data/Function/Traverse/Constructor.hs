@@ -60,23 +60,23 @@ instance GenericTraverse (EmptyRec0 (f :: Type -> Type)) where
     type GenericTraverseC (EmptyRec0 f) _ = Alternative f
     genericTraverseAction _ _ _ _ = empty
 
-class GTraverseC cd cc (si :: Natural) tag gf where
+class GTraverseC tag cd cc (si :: Natural) gf where
     gTraverseC :: GenericTraverseF tag (gf p)
 
 instance
   ( Applicative (GenericTraverseF tag)
-  , GTraverseC cd cc si                 tag l
-  , GTraverseC cd cc (si + ProdArity r) tag r
-  ) => GTraverseC cd cc si tag (l :*: r) where
+  , GTraverseC tag cd cc si                 l
+  , GTraverseC tag cd cc (si + ProdArity r) r
+  ) => GTraverseC tag cd cc si (l :*: r) where
     gTraverseC = Applicative.liftA2 (:*:)
-                   (gTraverseC @cd @cc @si                 @tag)
-                   (gTraverseC @cd @cc @(si + ProdArity r) @tag)
+                   (gTraverseC @tag @cd @cc @si)
+                   (gTraverseC @tag @cd @cc @(si + ProdArity r))
 
 instance
   ( GenericTraverse tag, GenericTraverseC tag a
   , Functor (GenericTraverseF tag)
   , KnownNat si, Selector cs, Constructor cc, Datatype cd
-  ) => GTraverseC cd cc si tag (S1 cs (Rec0 a)) where
+  ) => GTraverseC tag cd cc si (S1 cs (Rec0 a)) where
     gTraverseC = (M1 . K1) <$> genericTraverseAction @tag cd cc cs si
       where
         cs = selName'' @cs
@@ -84,7 +84,7 @@ instance
         cc = conName' @cc
         si = natVal'' @si
 
-instance Applicative (GenericTraverseF tag) => GTraverseC cd cc 0 tag U1 where
+instance Applicative (GenericTraverseF tag) => GTraverseC tag cd cc 0 U1 where
     gTraverseC = pure U1
 
 type family ProdArity (f :: Type -> Type) :: Natural where
