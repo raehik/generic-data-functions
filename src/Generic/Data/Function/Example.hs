@@ -21,16 +21,16 @@ instance GenericFoldMap Showly where
     genericFoldMapF = (\a -> [a]) . show
 
 showGeneric
-    :: forall {cd} {f} opts a
-    .  (Generic a, Rep a ~ D1 cd f, GFoldMapSum opts Showly f)
+    :: forall opts a
+    .  (Generic a, GFoldMapSum Showly opts (Rep a))
     => a -> String
 showGeneric =
       mconcat . List.intersperse " "
-    . genericFoldMapSum @opts @Showly (\cstr -> [cstr])
+    . genericFoldMapSum @Showly @opts (\cstr -> [cstr])
 
 showGeneric'
-    :: forall {cd} {f} a
-    .  (Generic a, Rep a ~ D1 cd f, GFoldMapNonSum Showly f)
+    :: forall a
+    .  (Generic a, GFoldMapNonSum Showly (Rep a))
     => a -> String
 showGeneric' =
     mconcat . List.intersperse " " . genericFoldMapNonSum @Showly

@@ -19,24 +19,24 @@ import Generic.Data.Function.FoldMap.Constructor
 import Generic.Data.Rep.Error
 import Generic.Data.Function.Common
 
-class GFoldMapSum (opts :: SumOpts) tag gf where
+class GFoldMapSum tag (opts :: SumOpts) gf where
     gFoldMapSum
         :: (String -> GenericFoldMapM tag) -> gf p -> GenericFoldMapM tag
 
-instance GFoldMapSum opts tag gf => GFoldMapSum opts tag (D1 c gf) where
-    gFoldMapSum f = gFoldMapSum @opts @tag f . unM1
+instance GFoldMapSum tag opts gf => GFoldMapSum tag opts (D1 c gf) where
+    gFoldMapSum f = gFoldMapSum @tag @opts f . unM1
 
-instance GFoldMapCSum tag (l :+: r) => GFoldMapSum opts tag (l :+: r) where
+instance GFoldMapCSum tag (l :+: r) => GFoldMapSum tag opts (l :+: r) where
     gFoldMapSum = gFoldMapCSum @tag
 
-instance GFoldMapSum 'SumOnly tag (C1 c gf) where
+instance GFoldMapSum tag 'SumOnly (C1 c gf) where
     gFoldMapSum = error eNeedSum
 
 instance GFoldMapCSum tag (C1 c gf)
-  => GFoldMapSum 'AllowSingletonSum tag (C1 c gf) where
+  => GFoldMapSum tag 'AllowSingletonSum (C1 c gf) where
     gFoldMapSum = gFoldMapCSum @tag
 
-instance GFoldMapSum opts tag V1 where
+instance GFoldMapSum tag opts V1 where
     gFoldMapSum = error eNoEmpty
 
 -- | Sum type handler prefixing constructor contents with their mapped
