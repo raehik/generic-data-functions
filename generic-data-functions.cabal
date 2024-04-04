@@ -8,7 +8,7 @@ name:           generic-data-functions
 version:        0.4.1
 synopsis:       Familiar functions lifted to generic data types
 description:    Please see README.md.
-category:       Data, Serialization
+category:       Data, Generics
 homepage:       https://github.com/raehik/generic-data-functions#readme
 bug-reports:    https://github.com/raehik/generic-data-functions/issues
 author:         Ben Orchard
