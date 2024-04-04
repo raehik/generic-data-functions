@@ -1,4 +1,4 @@
-## 0.4.0 (2024-04-04)
+## 0.4.1 (2024-04-04)
 * Remove generic representation asserts. We can handle them elsewhere without
   cluttering type signatures here. (I strongly recommend them, but that's not a
   reason to keep them here.)
