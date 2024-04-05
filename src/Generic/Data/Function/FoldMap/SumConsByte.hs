@@ -14,7 +14,7 @@ module Generic.Data.Function.FoldMap.SumConsByte where
 import GHC.Generics
 import GHC.TypeLits
 import Data.Kind ( Type, Constraint )
-import Generic.Data.Function.Util.TypeNats ( natVal'' )
+import Generic.Data.Function.Common.TypeNats ( natVal'' )
 import Generic.Data.Function.FoldMap.Constructor
   ( GFoldMapC(gFoldMapC)
   , GenericFoldMap(type GenericFoldMapM) )

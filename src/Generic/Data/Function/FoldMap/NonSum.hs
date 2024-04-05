@@ -7,7 +7,8 @@ import GHC.Generics
 import Generic.Data.Function.FoldMap.Constructor
   ( GFoldMapC(gFoldMapC)
   , GenericFoldMap(type GenericFoldMapM) )
-import Generic.Data.Function.Util.Error
+import Generic.Data.Function.Common.Error
+import Generic.Data.Function.Common.Generic ( absurdV1 )
 
 {- | 'foldMap' over generic product data types.
 
@@ -23,4 +24,4 @@ instance GFoldMapC tag gf => GFoldMapNonSum tag (C1 c gf) where
     gFoldMapNonSum (M1 a) = gFoldMapC @tag a
 
 instance GFoldMapNonSum tag (l :+: r) where gFoldMapNonSum = error eNoSum
-instance GFoldMapNonSum tag V1        where gFoldMapNonSum = error eNoEmpty
+instance GFoldMapNonSum tag V1        where gFoldMapNonSum = absurdV1

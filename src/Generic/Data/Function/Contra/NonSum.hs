@@ -4,13 +4,12 @@
 module Generic.Data.Function.Contra.NonSum where
 
 import Data.Functor.Contravariant
+import Data.Functor.Contravariant.Divisible
 
 import GHC.Generics
 import Generic.Data.Function.Contra.Constructor
-  ( GContraC(gContraC)
-  , GenericContra(type GenericContraF)
-  )
-import Generic.Data.Function.Util.Error
+import Generic.Data.Function.Common.Error
+import Generic.Data.Function.Common.Generic
 
 class GContraNonSum tag gf where gContraNonSum :: GenericContraF tag (gf p)
 
@@ -25,4 +24,6 @@ instance (Contravariant (GenericContraF tag), GContraC tag gf)
     gContraNonSumD = contramap unM1 (gContraC @tag)
 
 instance GContraNonSumD tag (l :+: r) where gContraNonSumD = error eNoSum
-instance GContraNonSumD tag V1        where gContraNonSumD = error eNoEmpty
+
+instance Divisible (GenericContraF tag) => GContraNonSumD tag V1 where
+    gContraNonSumD = contramap absurdV1 conquer

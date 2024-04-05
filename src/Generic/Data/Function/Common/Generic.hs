@@ -2,7 +2,7 @@
 
 -- | Handy generics utils.
 
-module Generic.Data.Function.Util.Generic where
+module Generic.Data.Function.Common.Generic where
 
 import GHC.Generics
 
@@ -29,3 +29,7 @@ selName' = selName @s undefined
 selName'' :: forall s. Selector s => Maybe String
 selName'' = case selName' @s of "" -> Nothing
                                 s  -> Just s
+
+-- | 'Data.Void.absurd' for the generic representation of the void type.
+absurdV1 :: forall {k} x a. V1 (x :: k) -> a
+absurdV1 a = case a of {}

@@ -4,12 +4,8 @@
 module Generic.Data.Function.Contra.Sum where
 
 import GHC.Generics
-import Generic.Data.Function.Util.Generic ( conName' )
+import Generic.Data.Function.Common.Generic
 import Generic.Data.Function.Contra.Constructor
-  ( GContraC(gContraC)
-  , GenericContra(type GenericContraF)
-  )
-import Generic.Data.Function.Util.Error
 
 import Data.Functor.Contravariant.Divisible
 import Data.Functor.Contravariant
@@ -30,8 +26,8 @@ instance GContraCSum tag (l :+: r) => GContraSumD tag (l :+: r) where
 instance GContraCSum tag (C1 cc gf) => GContraSumD tag (C1 cc gf) where
     gContraSumD = gContraCSum @tag
 
-instance GContraSumD tag V1 where
-    gContraSumD = error eNoEmpty
+instance Divisible (GenericContraF tag) => GContraSumD tag V1 where
+    gContraSumD _ = contramap absurdV1 conquer
 
 -- TODO rename (? had this on foldmap sum)
 class GContraCSum tag gf where

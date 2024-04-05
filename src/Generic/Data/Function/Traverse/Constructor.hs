@@ -5,8 +5,9 @@ module Generic.Data.Function.Traverse.Constructor where
 
 import GHC.Generics
 import GHC.TypeNats ( Natural, KnownNat, type (+) )
-import Generic.Data.Function.Util.Generic ( datatypeName', conName', selName'' )
-import Generic.Data.Function.Util.TypeNats ( natVal'' )
+import Generic.Data.Function.Common.Generic ( datatypeName', conName', selName'' )
+import Generic.Data.Function.Common.TypeNats ( natVal'' )
+import Generic.Data.Function.Common.Error ( eNoEmpty )
 
 import Control.Applicative qualified as Applicative
 import Control.Applicative ( Alternative(empty) )
@@ -43,6 +44,12 @@ class GenericTraverse tag where
         -> Maybe String {- ^ record name (if present) -}
         -> Natural      {- ^ field index -}
         -> GenericTraverseF tag a
+
+    -- | Action to run when trying to parse a 'V1' (void data type).
+    --
+    -- Defaults to 'error', but you may wrap it in your functor if it pleases.
+    genericTraverseV1 :: GenericTraverseF tag (V1 p)
+    genericTraverseV1 = error eNoEmpty
 
 -- | 'traverse' over types with no fields in any constructor.
 instance GenericTraverse (NoRec0 (f :: Type -> Type)) where

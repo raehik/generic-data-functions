@@ -5,10 +5,7 @@ module Generic.Data.Function.Traverse.NonSum where
 
 import GHC.Generics
 import Generic.Data.Function.Traverse.Constructor
-  ( GTraverseC(gTraverseC)
-  , GenericTraverse(type GenericTraverseF)
-  )
-import Generic.Data.Function.Util.Error
+import Generic.Data.Function.Common.Error
 
 class GTraverseNonSum tag gf where
     gTraverseNonSum :: GenericTraverseF tag (gf p)
@@ -24,7 +21,6 @@ instance (Functor (GenericTraverseF tag), GTraverseC tag cd cc 0 gf)
   => GTraverseNonSumD tag cd (C1 cc gf) where
     gTraverseNonSumD = M1 <$> gTraverseC @tag @cd @cc @0
 
-instance GTraverseNonSumD cd tag (l :+: r) where
-    gTraverseNonSumD = error eNoSum
-instance GTraverseNonSumD cd tag V1        where
-    gTraverseNonSumD = error eNoEmpty
+instance GTraverseNonSumD tag cd (l :+: r) where gTraverseNonSumD = error eNoSum
+instance GenericTraverse tag => GTraverseNonSumD tag cd V1 where
+    gTraverseNonSumD = genericTraverseV1 @tag

@@ -27,6 +27,10 @@ source-repository head
 library
   exposed-modules:
       Generic.Data.Function
+      Generic.Data.Function.Common.Error
+      Generic.Data.Function.Common.Generic
+      Generic.Data.Function.Common.Generic.Meta
+      Generic.Data.Function.Common.TypeNats
       Generic.Data.Function.Contra
       Generic.Data.Function.Contra.Constructor
       Generic.Data.Function.Contra.NonSum
@@ -41,9 +45,6 @@ library
       Generic.Data.Function.Traverse.Constructor
       Generic.Data.Function.Traverse.NonSum
       Generic.Data.Function.Traverse.Sum
-      Generic.Data.Function.Util.Error
-      Generic.Data.Function.Util.Generic
-      Generic.Data.Function.Util.TypeNats
       Generic.Data.Wrappers
   other-modules:
       Paths_generic_data_functions

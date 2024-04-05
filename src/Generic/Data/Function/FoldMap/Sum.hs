@@ -12,11 +12,10 @@ you should be able to "reverse" the process (e.g. for generic 'traverse').
 module Generic.Data.Function.FoldMap.Sum where
 
 import GHC.Generics
-import Generic.Data.Function.Util.Generic ( conName' )
+import Generic.Data.Function.Common.Generic ( conName', absurdV1 )
 import Generic.Data.Function.FoldMap.Constructor
   ( GFoldMapC(gFoldMapC)
   , GenericFoldMap(type GenericFoldMapM) )
-import Generic.Data.Function.Util.Error
 
 class GFoldMapSum tag gf where
     gFoldMapSum
@@ -32,7 +31,7 @@ instance GFoldMapCSum tag (C1 c gf) => GFoldMapSum tag (C1 c gf) where
     gFoldMapSum = gFoldMapCSum @tag
 
 instance GFoldMapSum tag V1 where
-    gFoldMapSum = error eNoEmpty
+    gFoldMapSum _ = absurdV1
 
 -- | Sum type handler prefixing constructor contents with their mapped
 --   constructor name via a provided @String -> m@.

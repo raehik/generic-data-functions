@@ -2,7 +2,7 @@
 
 -- | Handy typenat utils.
 
-module Generic.Data.Function.Util.TypeNats where
+module Generic.Data.Function.Common.TypeNats where
 
 -- natVal''
 import GHC.TypeNats ( Natural, KnownNat, natVal' )

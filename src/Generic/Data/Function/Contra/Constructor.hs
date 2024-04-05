@@ -21,10 +21,7 @@ import GHC.TypeLits ( TypeError )
 class GenericContra tag where
     type GenericContraF tag :: Type -> Type
     type GenericContraC tag a :: Constraint
-    -- TODO added Divisible
-    genericContraF
-        :: (GenericContraC tag a, Divisible (GenericContraF tag))
-        => GenericContraF tag a
+    genericContraF :: GenericContraC tag a => GenericContraF tag a
 
 -- | over types with no fields in any constructor
 instance GenericContra (NoRec0 (f :: Type -> Type)) where
@@ -35,9 +32,8 @@ instance GenericContra (NoRec0 (f :: Type -> Type)) where
 -- | over types where all fields map to 'mempty'
 instance GenericContra (EmptyRec0 (f :: Type -> Type)) where
     type GenericContraF (EmptyRec0 f) = f
-    type GenericContraC (EmptyRec0 f) a = ()
+    type GenericContraC (EmptyRec0 f) _ = Divisible f
     genericContraF = conquer
-    -- TODO by adding Divisible f we don't need (Monoid a)/mempty any more
 
 class GContraC tag gf where gContraC :: GenericContraF tag (gf p)
 
@@ -48,7 +44,7 @@ instance
     gContraC = divide (\(l :*: r) -> (l, r)) (gContraC @tag) (gContraC @tag)
 
 instance
-  ( Divisible (GenericContraF tag)
+  ( Contravariant (GenericContraF tag)
   , GenericContra tag, GenericContraC tag a
   ) => GContraC tag (S1 c (Rec0 a)) where
     gContraC = contramap (unK1 . unM1) (genericContraF @tag)

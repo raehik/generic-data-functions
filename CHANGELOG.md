@@ -4,6 +4,13 @@
   runtime behaviour. generic-data-asserts provides type-level asserts which fail
   at compile time. Now you can't fail at runtime on a singleton sum -- you must
   either allow it, or fail at compile time -- but I don't see this as a problem.
+* Add "checked constructor names" to generic traverse fail.
+* Clean up some errors, `error` usage:
+  * `V1` errors are handled using `absurdV1 :: V1 p -> a` (like `absurd :: Void
+    -> a`) instead of error messages -- since I suppose that's what you want if
+    you're thrusting void data types at us
+  * except for generic traverse, where the user can choose to wrap it into their
+    functor (e.g. as a parse error)
 
 ## 0.4.1 (2024-04-04)
 * Remove generic representation asserts. We can handle them elsewhere without
