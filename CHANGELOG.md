@@ -1,4 +1,4 @@
-## Unreleased
+## 0.5.0 (2024-04-05)
 * Remove `SumOpts` type used for switching whether or not to permit "singleton
   sum types" for sum handlers. This was a type-level switch which changed
   runtime behaviour. generic-data-asserts provides type-level asserts which fail
