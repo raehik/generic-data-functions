@@ -39,13 +39,13 @@ genericTraverseNonSum = to <$> gTraverseNonSum @tag
 --
 -- You must provide a configuration for how to handle constructors.
 genericTraverseSum
-    :: forall {k} (tag :: k) opts a pt
+    :: forall {k} (tag :: k) a pt
     .  ( Generic a
        , Functor (GenericTraverseF tag)
-       , GTraverseSum tag opts (Rep a)
+       , GTraverseSum tag (Rep a)
        , GenericTraverseC tag pt
     ) => PfxTagCfg pt -> GenericTraverseF tag a
-genericTraverseSum ptc = to <$> gTraverseSum @tag @opts ptc
+genericTraverseSum ptc = to <$> gTraverseSum @tag ptc
 
 -- | Construct a prefix tag config using existing 'Eq' and 'Show' instances.
 --

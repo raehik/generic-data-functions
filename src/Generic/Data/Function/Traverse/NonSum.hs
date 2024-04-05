@@ -8,7 +8,7 @@ import Generic.Data.Function.Traverse.Constructor
   ( GTraverseC(gTraverseC)
   , GenericTraverse(type GenericTraverseF)
   )
-import Generic.Data.Rep.Error
+import Generic.Data.Function.Util.Error
 
 class GTraverseNonSum tag gf where
     gTraverseNonSum :: GenericTraverseF tag (gf p)

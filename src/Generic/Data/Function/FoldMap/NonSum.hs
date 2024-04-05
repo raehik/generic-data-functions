@@ -7,7 +7,7 @@ import GHC.Generics
 import Generic.Data.Function.FoldMap.Constructor
   ( GFoldMapC(gFoldMapC)
   , GenericFoldMap(type GenericFoldMapM) )
-import Generic.Data.Rep.Error
+import Generic.Data.Function.Util.Error
 
 {- | 'foldMap' over generic product data types.
 

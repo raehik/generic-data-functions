@@ -16,27 +16,22 @@ import Generic.Data.Function.Util.Generic ( conName' )
 import Generic.Data.Function.FoldMap.Constructor
   ( GFoldMapC(gFoldMapC)
   , GenericFoldMap(type GenericFoldMapM) )
-import Generic.Data.Rep.Error
-import Generic.Data.Function.Common
+import Generic.Data.Function.Util.Error
 
-class GFoldMapSum tag (opts :: SumOpts) gf where
+class GFoldMapSum tag gf where
     gFoldMapSum
         :: (String -> GenericFoldMapM tag) -> gf p -> GenericFoldMapM tag
 
-instance GFoldMapSum tag opts gf => GFoldMapSum tag opts (D1 c gf) where
-    gFoldMapSum f = gFoldMapSum @tag @opts f . unM1
+instance GFoldMapSum tag gf => GFoldMapSum tag (D1 c gf) where
+    gFoldMapSum f = gFoldMapSum @tag f . unM1
 
-instance GFoldMapCSum tag (l :+: r) => GFoldMapSum tag opts (l :+: r) where
+instance GFoldMapCSum tag (l :+: r) => GFoldMapSum tag (l :+: r) where
     gFoldMapSum = gFoldMapCSum @tag
 
-instance GFoldMapSum tag 'SumOnly (C1 c gf) where
-    gFoldMapSum = error eNeedSum
-
-instance GFoldMapCSum tag (C1 c gf)
-  => GFoldMapSum tag 'AllowSingletonSum (C1 c gf) where
+instance GFoldMapCSum tag (C1 c gf) => GFoldMapSum tag (C1 c gf) where
     gFoldMapSum = gFoldMapCSum @tag
 
-instance GFoldMapSum tag opts V1 where
+instance GFoldMapSum tag V1 where
     gFoldMapSum = error eNoEmpty
 
 -- | Sum type handler prefixing constructor contents with their mapped

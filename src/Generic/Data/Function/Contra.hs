@@ -31,9 +31,9 @@ genericContraNonSum = contramap from (gContraNonSum @tag)
 -- This is the most generic option, but depending on your string manipulation
 -- may be slower.
 genericContraSum
-    :: forall {k} (tag :: k) opts a
+    :: forall {k} (tag :: k) a
     .  ( Generic a
        , Contravariant (GenericContraF tag)
-       , GContraSum tag opts (Rep a)
+       , GContraSum tag (Rep a)
     ) => GenericContraF tag String -> GenericContraF tag a
-genericContraSum f = contramap from (gContraSum @tag @opts f)
+genericContraSum f = contramap from (gContraSum @tag f)

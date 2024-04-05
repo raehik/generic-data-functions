@@ -9,8 +9,7 @@ import Generic.Data.Function.Traverse.Constructor
   ( GTraverseC(gTraverseC)
   , GenericTraverse(type GenericTraverseF, type GenericTraverseC)
   )
-import Generic.Data.Rep.Error
-import Generic.Data.Function.Common
+import Generic.Data.Function.Util.Error
 
 import Data.Text ( Text )
 import Control.Applicative qualified as Applicative
@@ -53,16 +52,16 @@ data PfxTagCfg a = PfxTagCfg
   -- ^ Make a prefix tag human-readable. 'show' is often appropriate.
   }
 
-class GTraverseSum tag (opts :: SumOpts) gf where
+class GTraverseSum tag gf where
     gTraverseSum
         :: GenericTraverseC tag pt
         => PfxTagCfg pt -> GenericTraverseF tag (gf p)
 
-instance (GTraverseSumD tag cd opts gf, Functor (GenericTraverseF tag)
-  ) => GTraverseSum tag opts (D1 cd gf) where
-    gTraverseSum ptc = M1 <$> gTraverseSumD @tag @cd @opts ptc
+instance (GTraverseSumD tag cd gf, Functor (GenericTraverseF tag)
+  ) => GTraverseSum tag (D1 cd gf) where
+    gTraverseSum ptc = M1 <$> gTraverseSumD @tag @cd ptc
 
-class GTraverseSumD tag cd (opts :: SumOpts) gf where
+class GTraverseSumD tag cd gf where
     gTraverseSumD
         :: GenericTraverseC tag pt
         => PfxTagCfg pt -> GenericTraverseF tag (gf p)
@@ -71,7 +70,7 @@ instance
   ( GenericTraverseSum tag, GTraverseCSum tag cd (l :+: r), Datatype cd
   , Alternative (GenericTraverseF tag)
   , Monad (GenericTraverseF tag)
-  ) => GTraverseSumD tag cd opts (l :+: r) where
+  ) => GTraverseSumD tag cd (l :+: r) where
     gTraverseSumD = gTraverseSumD' @tag @cd
 
 gTraverseSumD'
@@ -91,17 +90,14 @@ gTraverseSumD' ptc = do
         genericTraverseSumNoMatchingCstrAction @tag cd testedCstrs ((pfxTagCfgShow ptc) pt)
     testedCstrs = [] -- TODO
 
-instance GTraverseSumD tag cd 'SumOnly (C1 cc gf) where
-    gTraverseSumD = error eNeedSum
-
 instance
   ( GenericTraverseSum tag, GTraverseCSum tag cd (C1 cc gf), Datatype cd
   , Alternative (GenericTraverseF tag)
   , Monad (GenericTraverseF tag)
-  ) => GTraverseSumD tag cd 'AllowSingletonSum (C1 cc gf) where
+  ) => GTraverseSumD tag cd (C1 cc gf) where
     gTraverseSumD = gTraverseSumD' @tag @cd
 
-instance GTraverseSumD opts tag cd V1 where
+instance GTraverseSumD tag cd V1 where
     gTraverseSumD = error eNoEmpty
 
 class GTraverseCSum tag cd gf where

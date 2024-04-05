@@ -58,11 +58,11 @@ genericFoldMapNonSum = gFoldMapNonSum @tag . from
 -- This is the most generic option, but depending on your string manipulation
 -- may be slower.
 genericFoldMapSum
-    :: forall {k} (tag :: k) opts a
-    .  ( Generic a, GFoldMapSum tag opts (Rep a)
+    :: forall {k} (tag :: k) a
+    .  ( Generic a, GFoldMapSum tag (Rep a)
     ) => (String -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
-genericFoldMapSum f = gFoldMapSum @tag @opts f . from
+genericFoldMapSum f = gFoldMapSum @tag f . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@ where constructors are
 -- mapped to their index (distance from first/leftmost constructor)

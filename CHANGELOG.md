@@ -1,3 +1,10 @@
+## Unreleased
+* Remove `SumOpts` type used for switching whether or not to permit "singleton
+  sum types" for sum handlers. This was a type-level switch which changed
+  runtime behaviour. generic-data-asserts provides type-level asserts which fail
+  at compile time. Now you can't fail at runtime on a singleton sum -- you must
+  either allow it, or fail at compile time -- but I don't see this as a problem.
+
 ## 0.4.1 (2024-04-04)
 * Remove generic representation asserts. We can handle them elsewhere without
   cluttering type signatures here. (I strongly recommend them, but that's not a

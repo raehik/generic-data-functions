@@ -9,33 +9,28 @@ import Generic.Data.Function.Contra.Constructor
   ( GContraC(gContraC)
   , GenericContra(type GenericContraF)
   )
-import Generic.Data.Rep.Error
-import Generic.Data.Function.Common
+import Generic.Data.Function.Util.Error
 
 import Data.Functor.Contravariant.Divisible
 import Data.Functor.Contravariant
 
-class GContraSum tag (opts :: SumOpts) gf where
+class GContraSum tag gf where
     gContraSum :: GenericContraF tag String -> GenericContraF tag (gf p)
 
-instance (GContraSumD tag opts gf, Contravariant (GenericContraF tag))
-  => GContraSum tag opts (D1 cd gf) where
-    gContraSum f = contramap unM1 (gContraSumD @tag @opts f)
+instance (GContraSumD tag gf, Contravariant (GenericContraF tag))
+  => GContraSum tag (D1 cd gf) where
+    gContraSum f = contramap unM1 (gContraSumD @tag f)
 
-class GContraSumD tag (opts :: SumOpts) gf where
+class GContraSumD tag gf where
     gContraSumD :: GenericContraF tag String -> GenericContraF tag (gf p)
 
-instance GContraCSum tag (l :+: r) => GContraSumD tag opts (l :+: r) where
+instance GContraCSum tag (l :+: r) => GContraSumD tag (l :+: r) where
     gContraSumD = gContraCSum @tag
 
-instance GContraSumD tag 'SumOnly (C1 cc gf) where
-    gContraSumD = error eNeedSum
-
-instance GContraCSum tag (C1 cc gf)
-  => GContraSumD tag 'AllowSingletonSum (C1 cc gf) where
+instance GContraCSum tag (C1 cc gf) => GContraSumD tag (C1 cc gf) where
     gContraSumD = gContraCSum @tag
 
-instance GContraSumD tag opts V1 where
+instance GContraSumD tag V1 where
     gContraSumD = error eNoEmpty
 
 -- TODO rename (? had this on foldmap sum)

@@ -10,7 +10,7 @@ import Generic.Data.Function.Contra.Constructor
   ( GContraC(gContraC)
   , GenericContra(type GenericContraF)
   )
-import Generic.Data.Rep.Error
+import Generic.Data.Function.Util.Error
 
 class GContraNonSum tag gf where gContraNonSum :: GenericContraF tag (gf p)
 

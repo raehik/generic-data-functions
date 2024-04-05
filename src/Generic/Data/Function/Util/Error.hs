@@ -8,7 +8,7 @@ Runtime errors are a bit meatier because it's easy to do so, and I don't want
 people to see them more than once (really you should use the typing support).
 -}
 
-module Generic.Data.Rep.Error where
+module Generic.Data.Function.Util.Error where
 
 import GHC.TypeLits ( ErrorMessage(Text) )
 
