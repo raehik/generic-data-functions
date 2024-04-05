@@ -57,8 +57,7 @@ instance GenericTraverse tag => GTraverseSum tag V1 where
 -- | Test all constructors of the given non-void data type; if they all fail,
 --   run a failure action and pass it all the constructors names in the type.
 instance
-  ( GenericTraverseC tag pt
-  , Alternative (GenericTraverseF tag)
+  ( Alternative (GenericTraverseF tag)
   , Monad (GenericTraverseF tag)
   , GenericTraverseSum tag, GTraverseCSum tag cd gf
   , Datatype cd
