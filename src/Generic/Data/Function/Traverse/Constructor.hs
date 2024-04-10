@@ -15,7 +15,7 @@ import Control.Applicative ( Alternative(empty) )
 import Data.Kind ( type Type, type Constraint )
 
 import Generic.Data.Wrappers ( NoRec0, type ENoRec0, EmptyRec0 )
-import GHC.TypeLits ( TypeError )
+import GHC.TypeError ( TypeError, ErrorMessage(..) )
 
 -- import Data.Monoid
 
@@ -49,7 +49,21 @@ class GenericTraverse tag where
     --
     -- Defaults to 'error', but you may wrap it in your functor if it pleases.
     genericTraverseV1 :: GenericTraverseF tag (V1 p)
+    -- NOTE: Prior to GHC 9.8, we can't default to a compile-time error here,
+    -- due to TypeError limitations. From GHC 9.8, we can use Unsatisfiable.
+    -- But I'm still not sure it works how I would like it to. Let's just stick
+    -- with 'error' for now. One can always use generic-type-asserts.
+    {-
+    default genericTraverseV1
+        :: Unsatisfiable (ENoEmpty tag) => GenericTraverseF tag (V1 p)
+    genericTraverseV1 = unsatisfiable
+    -}
     genericTraverseV1 = error eNoEmpty
+
+type ENoEmpty tag =
+         'Text "Attempted to derive generic traverse for the void data type"
+    :$$: 'Text "To override, implement genericTraverseV1 on:"
+    :$$: 'Text "instance GenericTraverse (" :<>: 'ShowType tag :<>: 'Text ")"
 
 -- | 'traverse' over types with no fields in any constructor.
 instance GenericTraverse (NoRec0 (f :: Type -> Type)) where

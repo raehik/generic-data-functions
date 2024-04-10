@@ -9,7 +9,7 @@ wrapE msgGot msgWhyBad =
     <> "  got: "<>msgGot<>"\n"
     <> "  but: "<>msgWhyBad<>"\n"
     <> "If you like, you can catch such errors during compilation.\n"
-    <> "See the generic-data-asserts package on Hackage."
+    <> "See the generic-type-asserts package on Hackage."
 
 eNoEmpty :: String
 eNoEmpty = wrapE "empty data type" "disallowed"

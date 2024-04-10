@@ -47,6 +47,7 @@ data PfxTagCfg a = PfxTagCfg
   }
 
 class GTraverseSum tag gf where
+    -- have to stuff pt constraint in here because we can't access pt externally
     gTraverseSum
         :: GenericTraverseC tag pt
         => PfxTagCfg pt -> GenericTraverseF tag (gf p)
