@@ -1,3 +1,7 @@
+## 0.5.1 (2024-04-10)
+* remove spurious constraint in Traverse.Sum (should be same semantics)
+* bump text upper bound for GHC 9.8 compatibility
+
 ## 0.5.0 (2024-04-05)
 * Remove `SumOpts` type used for switching whether or not to permit "singleton
   sum types" for sum handlers. This was a type-level switch which changed
