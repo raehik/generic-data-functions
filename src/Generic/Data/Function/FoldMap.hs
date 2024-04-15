@@ -32,6 +32,7 @@ module Generic.Data.Function.FoldMap
   , genericFoldMapNonSum, GFoldMapNonSum
   , genericFoldMapSum,    GFoldMapSum
   , genericFoldMapSumConsByte,    GFoldMapSumConsByte
+  , genericFoldMapSumType
   ) where
 
 import GHC.Generics
@@ -41,6 +42,9 @@ import Generic.Data.Function.FoldMap.Sum
 import Generic.Data.Function.FoldMap.Constructor
 import Generic.Data.Function.FoldMap.SumConsByte
 import Data.Word ( Word8 )
+
+import Generic.Data.Function.FoldMap.SumType qualified as ST
+import GHC.Exts ( type Proxy# )
 
 -- | Generic 'foldMap' over a term of non-sum data type @a@.
 --
@@ -79,3 +83,13 @@ genericFoldMapSumConsByte
     => (Word8 -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
 genericFoldMapSumConsByte f = gFoldMapSumConsByte @tag f . from
+
+genericFoldMapSumType
+    :: forall tag sumtag a
+    .  (Generic a, ST.GFoldMapSum tag sumtag (Rep a))
+    => (forall
+        (x :: ST.GenericFoldMapSumCstrTy sumtag)
+        .  ST.GenericFoldMapSumCstrC sumtag x
+        => Proxy# x -> GenericFoldMapM tag)
+    -> a -> GenericFoldMapM tag
+genericFoldMapSumType f = ST.gFoldMapSum @tag @sumtag f . from

@@ -9,6 +9,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
+    type-level-bytestrings.url   = "github:raehik/type-level-bytestrings";
+    type-level-bytestrings.flake = false;
   };
   outputs = inputs:
   let
@@ -31,18 +33,22 @@
         devShells.default = self'.devShells.ghc96;
         haskellProjects.ghc98 = {
           basePackages = pkgs.haskell.packages.ghc98;
+          packages.type-level-bytestrings.source = inputs.type-level-bytestrings;
           devShell = nondevDevShell "ghc98";
         };
         haskellProjects.ghc96 = {
           basePackages = pkgs.haskell.packages.ghc96;
+          packages.type-level-bytestrings.source = inputs.type-level-bytestrings;
           devShell.mkShellArgs.name = "ghc96-generic-data-functions";
         };
         haskellProjects.ghc94 = {
           basePackages = pkgs.haskell.packages.ghc94;
+          packages.type-level-bytestrings.source = inputs.type-level-bytestrings;
           devShell = nondevDevShell "ghc94";
         };
         haskellProjects.ghc92 = {
           basePackages = pkgs.haskell.packages.ghc92;
+          packages.type-level-bytestrings.source = inputs.type-level-bytestrings;
           devShell = nondevDevShell "ghc92";
         };
       };
