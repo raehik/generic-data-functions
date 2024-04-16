@@ -68,6 +68,20 @@ genericFoldMapSum
     -> a -> GenericFoldMapM tag
 genericFoldMapSum f = gFoldMapSum @tag f . from
 
+-- | Generic 'foldMap' over a term of sum data type @a@, where we perform some
+--   amount of type-level calculation on constructors before reifying.
+--
+-- Hard to explain. Should be very performant.
+genericFoldMapSumType
+    :: forall tag sumtag a
+    .  (Generic a, ST.GFoldMapSum tag sumtag (Rep a))
+    => (forall
+        (x :: ST.GenericFoldMapSumCstrTy sumtag)
+        .  ST.GenericFoldMapSumCstrC sumtag x
+        => Proxy# x -> GenericFoldMapM tag)
+    -> a -> GenericFoldMapM tag
+genericFoldMapSumType f = ST.gFoldMapSum @tag @sumtag f . from
+
 -- | Generic 'foldMap' over a term of sum data type @a@ where constructors are
 -- mapped to their index (distance from first/leftmost constructor)
 --
@@ -83,13 +97,3 @@ genericFoldMapSumConsByte
     => (Word8 -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
 genericFoldMapSumConsByte f = gFoldMapSumConsByte @tag f . from
-
-genericFoldMapSumType
-    :: forall tag sumtag a
-    .  (Generic a, ST.GFoldMapSum tag sumtag (Rep a))
-    => (forall
-        (x :: ST.GenericFoldMapSumCstrTy sumtag)
-        .  ST.GenericFoldMapSumCstrC sumtag x
-        => Proxy# x -> GenericFoldMapM tag)
-    -> a -> GenericFoldMapM tag
-genericFoldMapSumType f = ST.gFoldMapSum @tag @sumtag f . from

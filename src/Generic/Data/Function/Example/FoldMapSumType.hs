@@ -18,14 +18,20 @@ import GHC.Exts ( type Proxy# )
 
 data DEnum3 = DEnum1 | DEnum2 | DEnum3 deriving stock Generic
 
-data DEnum3G
-instance XYZInner DEnum3G where
-    type GenericFoldMapSumCstrTy DEnum3G = Natural
+data DropHex (n :: Natural)
+instance XYZInner (DropHex n) where
+    type GenericFoldMapSumCstrTy (DropHex n) = Natural
+-- required TH splice due to GHC bug with dependent type families
 $(return [])
-instance XYZ DEnum3G where
-    type XYZCstrTo DEnum3G sym = HexSymbolToNat (Drop 5 sym)
-    type GenericFoldMapSumCstrC DEnum3G n = KnownNat n
+instance XYZ (DropHex n) where
+    type ParseCstr (DropHex n) sym =
+        MapLeftPrettyE (ParseHexSymbol (Drop n sym))
+    type GenericFoldMapSumCstrC (DropHex n) cstrHexNat = KnownNat cstrHexNat
 
 asdf :: DEnum3 -> Natural
 asdf =
-    getSum . genericFoldMapSumType @(NoRec0 (Sum Natural)) @DEnum3G (\p -> Sum (natVal' p))
+    getSum . genericFoldMapSumType @(NoRec0 (Sum Natural)) @(DropHex 5) (\p -> Sum (natVal' p))
+
+-- Note that we need a monoid even though we could skip it, given that we can
+-- just use the sum handler. This seems like something to tweak. Indeed, perhaps
+-- I drop the monoid requirement for sum types...? Match on @C1 c U1@ specially.
