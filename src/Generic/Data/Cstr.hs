@@ -22,7 +22,7 @@ type family FromLeftE dtName cstr eae where
     FromLeftE dtName cstr (Left  e) = TypeError
         (      Text "error searching for constructor " :<>: Text cstr
           :<>: Text " in data type " :<>: Text dtName :<>: Text ":"
-          :$$: PrettyE e )
+          :$$: e )
 
 instance
   ( turns ~ FromLeftE dtName name (GCstrPath name gf)
@@ -31,14 +31,14 @@ instance
     {-# INLINE gOnCstr #-}
     gOnCstr = M1 <$> gOnCstr' @tag @turns
 
-class GOnCstr' tag (turns :: [BTTurn]) gf where
+class GOnCstr' tag (turns :: [GCstrChoice]) gf where
     gOnCstr' :: IdkF tag (gf p)
 instance (Functor (IdkF tag), GOnCstr' tag turns l)
-  => GOnCstr' tag (BTL : turns) (l :+: r) where
+  => GOnCstr' tag (GoL1 : turns) (l :+: r) where
     {-# INLINE gOnCstr' #-}
     gOnCstr' = L1 <$> gOnCstr' @tag @turns
 instance (Functor (IdkF tag), GOnCstr' tag turns r)
-  => GOnCstr' tag (BTR : turns) (l :+: r) where
+  => GOnCstr' tag (GoR1 : turns) (l :+: r) where
     {-# INLINE gOnCstr' #-}
     gOnCstr' = R1 <$> gOnCstr' @tag @turns
 instance (Functor (IdkF tag), Idk tag, IdkC tag gf)
