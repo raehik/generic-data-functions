@@ -7,6 +7,7 @@ import GHC.Generics
 import GHC.TypeLits
 import Data.Kind ( type Type, type Constraint )
 import Generic.Type.CstrPath
+import GHC.Exts ( Proxy#, proxy# )
 
 -- | What generic functor to run on the requested constructor.
 class GenericFOnCstr tag where
@@ -14,13 +15,18 @@ class GenericFOnCstr tag where
     type GenericFOnCstrF tag :: Type -> Type
 
     -- | Constraint. Includes relevant generic meta (data type & constructor
-    -- name)
+    --   name).
     type GenericFOnCstrC tag (dtName :: Symbol) (cstrName :: Symbol) (gf :: k -> Type) :: Constraint
 
     -- | Generic functor.
+    --
+    -- We have to pass a proxy thanks to type applications not working properly
+    -- with instances. (This will be easier in GHC 9.10 via
+    -- RequiredTypeArguments).
     genericFOnCstrF
         :: GenericFOnCstrC tag dtName cstrName gf
-        => GenericFOnCstrF tag (gf p)
+        => Proxy# '(dtName, cstrName)
+        -> GenericFOnCstrF tag (gf p)
 
 -- | Run a generic functor (provided via @tag@) on the constructor name @name@.
 --
@@ -67,7 +73,8 @@ instance
   , GenericFOnCstrC tag dtName cstrName gf
   ) => GFOnCstr' tag dtName cstrName '[] (C1 mc gf) where
     {-# INLINE gFOnCstr' #-}
-    gFOnCstr' = M1 <$> genericFOnCstrF @tag @dtName @cstrName
+    gFOnCstr' =
+        M1 <$> genericFOnCstrF @tag (proxy# :: Proxy# '(dtName, cstrName))
 
 -- | Run a generic functor on the requested constructor of the given type.
 genericFOnCstr
