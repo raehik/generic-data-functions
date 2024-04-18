@@ -4,9 +4,9 @@
 module Generic.Data.Function.Traverse.Constructor where
 
 import GHC.Generics
-import GHC.TypeNats ( Natural, KnownNat, type (+) )
+import GHC.TypeLits
 import Generic.Data.Function.Common.Generic ( datatypeName', conName', selName'' )
-import Generic.Data.Function.Common.TypeNats ( natVal'' )
+import Generic.Data.Function.Common.TypeLits ( natVal'', symbolVal'' )
 import Generic.Data.Function.Common.Error ( eNoEmpty )
 
 import Control.Applicative qualified as Applicative
@@ -81,7 +81,7 @@ instance GenericTraverse (EmptyRec0 (f :: Type -> Type)) where
     type GenericTraverseC (EmptyRec0 f) _ = Alternative f
     genericTraverseAction _ _ _ _ = empty
 
-class GTraverseC tag cd cc (si :: Natural) gf where
+class GTraverseC tag (cd :: Symbol) (cc :: Symbol) (si :: Natural) gf where
     gTraverseC :: GenericTraverseF tag (gf p)
 
 instance
@@ -96,13 +96,13 @@ instance
 instance
   ( GenericTraverse tag, GenericTraverseC tag a
   , Functor (GenericTraverseF tag)
-  , KnownNat si, Selector cs, Constructor cc, Datatype cd
-  ) => GTraverseC tag cd cc si (S1 cs (Rec0 a)) where
+  , KnownNat si, Selector ms, KnownSymbol cc, KnownSymbol cd
+  ) => GTraverseC tag cd cc si (S1 ms (Rec0 a)) where
     gTraverseC = (M1 . K1) <$> genericTraverseAction @tag cd cc cs si
       where
-        cs = selName'' @cs
-        cd = datatypeName' @cd
-        cc = conName' @cc
+        cs = selName'' @ms
+        cd = symbolVal'' @cd
+        cc = symbolVal'' @cc
         si = natVal'' @si
 
 instance Applicative (GenericTraverseF tag) => GTraverseC tag cd cc 0 U1 where

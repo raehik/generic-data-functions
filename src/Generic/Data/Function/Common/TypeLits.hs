@@ -1,11 +1,11 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 
--- | Handy typenat utils.
+-- | Handy typelit utils.
 
-module Generic.Data.Function.Common.TypeNats where
+module Generic.Data.Function.Common.TypeLits where
 
--- natVal''
 import GHC.TypeNats ( Natural, KnownNat, natVal' )
+import GHC.TypeLits ( Symbol, KnownSymbol, symbolVal' )
 import GHC.Exts ( proxy#, Proxy# )
 
 natVal'' :: forall n. KnownNat n => Natural
@@ -15,3 +15,7 @@ natVal'' = natVal' (proxy# :: Proxy# n)
 natValInt :: forall n. KnownNat n => Int
 natValInt = fromIntegral $ natVal'' @n
 {-# INLINE natValInt #-}
+
+symbolVal'' :: forall sym. KnownSymbol sym => String
+symbolVal'' = symbolVal' (proxy# :: Proxy# sym)
+{-# INLINE symbolVal'' #-}

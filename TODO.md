@@ -5,6 +5,7 @@
   * provide more versions: binary, cereal, store-style
 
 ## Code quality
+  * refactor GTraverse typevar names (not sending whole meta now, just Symbol)
   * highly granular constraints nice for writing, perhaps worse for type errors?
   * use `Tagged` instead of newtype spam for via?
 

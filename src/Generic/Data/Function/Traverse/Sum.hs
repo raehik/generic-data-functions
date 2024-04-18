@@ -4,13 +4,15 @@
 module Generic.Data.Function.Traverse.Sum where
 
 import GHC.Generics
-import Generic.Data.Function.Common.Generic
 import Generic.Data.Function.Common.Generic.Meta
 import Generic.Data.Function.Traverse.Constructor
 
 import Data.Text ( Text )
 import Control.Applicative qualified as Applicative
 import Control.Applicative ( Alternative((<|>)) )
+
+import Generic.Data.Function.Common.TypeLits ( symbolVal'' )
+import GHC.TypeLits ( Symbol, KnownSymbol )
 
 -- | Sum type monads that can be generically 'traverse'd.
 class GenericTraverse tag => GenericTraverseSum tag where
@@ -60,21 +62,21 @@ instance GenericTraverse tag => GTraverseSum tag V1 where
 instance
   ( Alternative (GenericTraverseF tag)
   , Monad (GenericTraverseF tag)
-  , GenericTraverseSum tag, GTraverseCSum tag cd gf
-  , Datatype cd
+  , GenericTraverseSum tag, GTraverseCSum tag dtName gf
+  , KnownSymbol dtName
   , KnownSymbols (CstrNames gf)
-  ) => GTraverseSum tag (D1 cd gf) where
+  ) => GTraverseSum tag (D1 (MetaData dtName _md2 _md3 _md4) gf) where
     gTraverseSum ptc = do
-        pt <- genericTraverseSumPfxTagAction @tag cd
-        M1 <$> (gTraverseCSum @tag @cd ptc pt <|> parseErrorNoMatch pt)
+        pt <- genericTraverseSumPfxTagAction @tag dtName
+        M1 <$> (gTraverseCSum @tag @dtName ptc pt <|> parseErrorNoMatch pt)
       where
-        cd = datatypeName' @cd
+        dtName = symbolVal'' @dtName
         parseErrorNoMatch pt =
-            genericTraverseSumNoMatchingCstrAction @tag cd testedCstrs
+            genericTraverseSumNoMatchingCstrAction @tag dtName testedCstrs
                 ((pfxTagCfgShow ptc) pt)
         testedCstrs = symbolVals @(CstrNames gf)
 
-class GTraverseCSum tag cd gf where
+class GTraverseCSum tag (cd :: Symbol) gf where
     gTraverseCSum :: PfxTagCfg pt -> pt -> GenericTraverseF tag (gf p)
 
 -- | Combine constructor options with '(<|>)' ("or").
@@ -92,11 +94,11 @@ instance
 --   handling that constructor's contents, else return the empty action.
 instance
   ( Alternative (GenericTraverseF tag)
-  , GTraverseC tag cd cc 0 gf, Constructor cc
-  ) => GTraverseCSum tag cd (C1 cc gf) where
+  , GTraverseC tag dtName cstrName 0 gf, KnownSymbol cstrName
+  ) => GTraverseCSum tag dtName (C1 (MetaCons cstrName _mc2 _mc3) gf) where
     gTraverseCSum ptc pt = do
         if   (pfxTagCfgEq ptc) pt ptCstr
-        then M1 <$> gTraverseC @tag @cd @cc @0
+        then M1 <$> gTraverseC @tag @dtName @cstrName @0
         else Applicative.empty
       where
-        ptCstr = (pfxTagCfgFromCstr ptc) (conName' @cc)
+        ptCstr = (pfxTagCfgFromCstr ptc) (symbolVal'' @cstrName)
