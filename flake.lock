@@ -71,24 +71,7 @@
       "inputs": {
         "flake-parts": "flake-parts",
         "haskell-flake": "haskell-flake",
-        "nixpkgs": "nixpkgs",
-        "type-level-bytestrings": "type-level-bytestrings"
-      }
-    },
-    "type-level-bytestrings": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1713289028,
-        "narHash": "sha256-hO3/9hIAFaShax/ySVDjF5QVhkRgPvqqKgARGLzowLY=",
-        "owner": "raehik",
-        "repo": "type-level-bytestrings",
-        "rev": "50e4ddb08cd37d62cdc3bad0268ff65c08580d67",
-        "type": "github"
-      },
-      "original": {
-        "owner": "raehik",
-        "repo": "type-level-bytestrings",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     }
   },

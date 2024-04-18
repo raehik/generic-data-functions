@@ -27,7 +27,6 @@ source-repository head
 library
   exposed-modules:
       Data.Type.List
-      Data.Type.Symbol
       Generic.Data.FOnCstr
       Generic.Data.Function
       Generic.Data.Function.Common.Error
@@ -39,7 +38,6 @@ library
       Generic.Data.Function.Contra.NonSum
       Generic.Data.Function.Contra.Sum
       Generic.Data.Function.Example
-      Generic.Data.Function.Example.FoldMapSumType
       Generic.Data.Function.FoldMap
       Generic.Data.Function.FoldMap.Constructor
       Generic.Data.Function.FoldMap.NonSum
@@ -73,5 +71,4 @@ library
       base >=4.14 && <5
     , contravariant >=1.5.5 && <1.6
     , text >=1.2.5.0 && <2.2
-    , type-level-bytestrings
   default-language: GHC2021
