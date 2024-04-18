@@ -13,11 +13,14 @@ class GenericFOnCstr tag where
     -- | Functor.
     type GenericFOnCstrF tag :: Type -> Type
 
-    -- | Constraint.
-    type GenericFOnCstrC tag (gf :: k -> Type) :: Constraint
+    -- | Constraint. Includes relevant generic meta (data type & constructor
+    -- name)
+    type GenericFOnCstrC tag (dtName :: Symbol) (cstrName :: Symbol) (gf :: k -> Type) :: Constraint
 
     -- | Generic functor.
-    genericFOnCstrF :: GenericFOnCstrC tag gf => GenericFOnCstrF tag (gf p)
+    genericFOnCstrF
+        :: GenericFOnCstrC tag dtName cstrName gf
+        => GenericFOnCstrF tag (gf p)
 
 -- | Run a generic functor (provided via @tag@) on the constructor name @name@.
 --
@@ -35,13 +38,14 @@ type family FromLeftE dtName cstr eae where
           :$$: e )
 
 instance
-  ( turns ~ FromLeftE dtName name (GCstrPath name gf)
-  , Functor (GenericFOnCstrF tag), GFOnCstr' tag turns gf
-  ) => GFOnCstr tag name (D1 (MetaData dtName _md2 _md3 _md4) gf) where
+  ( turns ~ FromLeftE dtName cstrName (GCstrPath cstrName gf)
+  , Functor (GenericFOnCstrF tag)
+  , GFOnCstr' tag dtName cstrName turns gf
+  ) => GFOnCstr tag cstrName (D1 (MetaData dtName _md2 _md3 _md4) gf) where
     {-# INLINE gFOnCstr #-}
-    gFOnCstr = M1 <$> gFOnCstr' @tag @turns
+    gFOnCstr = M1 <$> gFOnCstr' @tag @dtName @cstrName @turns
 
-class GFOnCstr' tag (turns :: [GCstrChoice]) gf where
+class GFOnCstr' tag (dtName :: Symbol) (cstrName :: Symbol) (turns :: [GCstrChoice]) gf where
     gFOnCstr' :: GenericFOnCstrF tag (gf p)
 
 {-
@@ -50,19 +54,20 @@ representation. I don't attempt to handle this at all, because I assume my
 constructor path algorithm is correct. Please let me know if you get an error
 that says it came from this class.
 -}
-instance (Functor (GenericFOnCstrF tag), GFOnCstr' tag turns l)
-  => GFOnCstr' tag (GoL1 : turns) (l :+: r) where
+instance (Functor (GenericFOnCstrF tag), GFOnCstr' tag dtName cstrName turns l)
+  => GFOnCstr' tag dtName cstrName (GoL1 : turns) (l :+: r) where
     {-# INLINE gFOnCstr' #-}
-    gFOnCstr' = L1 <$> gFOnCstr' @tag @turns
-instance (Functor (GenericFOnCstrF tag), GFOnCstr' tag turns r)
-  => GFOnCstr' tag (GoR1 : turns) (l :+: r) where
+    gFOnCstr' = L1 <$> gFOnCstr' @tag @dtName @cstrName @turns
+instance (Functor (GenericFOnCstrF tag), GFOnCstr' tag dtName cstrName turns r)
+  => GFOnCstr' tag dtName cstrName (GoR1 : turns) (l :+: r) where
     {-# INLINE gFOnCstr' #-}
-    gFOnCstr' = R1 <$> gFOnCstr' @tag @turns
+    gFOnCstr' = R1 <$> gFOnCstr' @tag @dtName @cstrName @turns
 instance
-  ( Functor (GenericFOnCstrF tag), GenericFOnCstr tag, GenericFOnCstrC tag gf
-  ) => GFOnCstr' tag '[] (C1 mc gf) where
+  ( Functor (GenericFOnCstrF tag), GenericFOnCstr tag
+  , GenericFOnCstrC tag dtName cstrName gf
+  ) => GFOnCstr' tag dtName cstrName '[] (C1 mc gf) where
     {-# INLINE gFOnCstr' #-}
-    gFOnCstr' = M1 <$> genericFOnCstrF @tag
+    gFOnCstr' = M1 <$> genericFOnCstrF @tag @dtName @cstrName
 
 -- | Run a generic functor on the requested constructor of the given type.
 genericFOnCstr
