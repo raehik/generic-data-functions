@@ -26,7 +26,9 @@ source-repository head
 
 library
   exposed-modules:
+      Data.Type.List
       Data.Type.Symbol
+      Generic.Data.Cstr
       Generic.Data.Function
       Generic.Data.Function.Common.Error
       Generic.Data.Function.Common.Generic
@@ -49,6 +51,7 @@ library
       Generic.Data.Function.Traverse.NonSum
       Generic.Data.Function.Traverse.Sum
       Generic.Data.Wrappers
+      Generic.Type.CstrPath
   other-modules:
       Paths_generic_data_functions
   hs-source-dirs:
