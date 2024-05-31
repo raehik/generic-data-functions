@@ -4,6 +4,8 @@ module Generic.Data.Function.Example where
 
 import GHC.Generics
 import Generic.Data.Function.FoldMap
+import Generic.Data.Function.FoldMap.SumType qualified as ST
+import Generic.Data.Sum
 
 import Data.List qualified as List
 
@@ -34,3 +36,11 @@ showGeneric'
     => a -> String
 showGeneric' =
     mconcat . List.intersperse " " . genericFoldMapNonSum @Showly
+
+showGeneric''
+    :: forall a
+    .  (Generic a, ST.GFoldMapSum Showly Raw (Rep a))
+    => a -> String
+showGeneric'' =
+      mconcat . List.intersperse " "
+    . genericFoldMapSum' @Showly (\cstr -> [cstr])

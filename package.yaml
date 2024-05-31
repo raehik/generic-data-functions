@@ -54,6 +54,7 @@ dependencies:
 - base >= 4.14 && < 5
 - text >= 1.2.5.0 && < 2.2
 - contravariant ^>= 1.5.5
+- symparsec # TODO probably temporary...?
 
 library:
   source-dirs: src

@@ -10,7 +10,7 @@ import GHC.Exts ( proxy# )
 -- | List every constructor name in a generic type rep.
 type family CstrNames gf :: [Symbol] where
     CstrNames (l :+: r) = CstrNames l ++ CstrNames r
-    CstrNames (C1 ('MetaCons n _ _) _) = '[n]
+    CstrNames (C1 (MetaCons n _ _) _) = '[n]
 
 -- | Append for type-level lists.
 type family (as :: [k]) ++ (bs :: [k]) :: [k] where

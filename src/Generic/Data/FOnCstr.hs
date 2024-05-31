@@ -32,19 +32,19 @@ class GenericFOnCstr tag where
 --
 -- We hope and pray that GHC removes the generic wrappers, at least the
 -- constructor ones, since we do a whole bunch of nothing with them on the term
--- level. Checking this is a big TODO.
+-- level. Checking this (the produced Core) is a big TODO.
 class GFOnCstr tag (name :: Symbol) gf where
     gFOnCstr :: GenericFOnCstrF tag (gf p)
 
-type family FromLeftE dtName cstr eae where
-    FromLeftE dtName cstr (Right a) = a
-    FromLeftE dtName cstr (Left  e) = TypeError
+type family AssertValidCstrPath dtName cstr eae where
+    AssertValidCstrPath dtName cstr (Right a) = a
+    AssertValidCstrPath dtName cstr (Left  e) = TypeError
         (      Text "error searching for constructor " :<>: Text cstr
           :<>: Text " in data type " :<>: Text dtName :<>: Text ":"
           :$$: e )
 
 instance
-  ( turns ~ FromLeftE dtName cstrName (GCstrPath cstrName gf)
+  ( turns ~ AssertValidCstrPath dtName cstrName (GCstrPath cstrName gf)
   , Functor (GenericFOnCstrF tag)
   , GFOnCstr' tag dtName cstrName turns gf
   ) => GFOnCstr tag cstrName (D1 (MetaData dtName _md2 _md3 _md4) gf) where

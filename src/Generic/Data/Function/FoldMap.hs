@@ -33,6 +33,7 @@ module Generic.Data.Function.FoldMap
   , genericFoldMapSum,    GFoldMapSum
   , genericFoldMapSumConsByte,    GFoldMapSumConsByte
   , genericFoldMapSumType
+  , genericFoldMapSum'
   ) where
 
 import GHC.Generics
@@ -44,7 +45,9 @@ import Generic.Data.Function.FoldMap.SumConsByte
 import Data.Word ( Word8 )
 
 import Generic.Data.Function.FoldMap.SumType qualified as ST
+import Generic.Data.Sum
 import GHC.Exts ( type Proxy# )
+import GHC.TypeLits ( symbolVal' )
 
 -- | Generic 'foldMap' over a term of non-sum data type @a@.
 --
@@ -68,19 +71,12 @@ genericFoldMapSum
     -> a -> GenericFoldMapM tag
 genericFoldMapSum f = gFoldMapSum @tag f . from
 
--- | Generic 'foldMap' over a term of sum data type @a@, where we perform some
---   amount of type-level calculation on constructors before reifying.
---
--- Hard to explain. Should be very performant.
-genericFoldMapSumType
-    :: forall tag sumtag a
-    .  (Generic a, ST.GFoldMapSum tag sumtag (Rep a))
-    => (forall
-        (x :: ST.GenericFoldMapSumCstrTy sumtag)
-        .  ST.GenericFoldMapSumCstrC sumtag x
-        => Proxy# x -> GenericFoldMapM tag)
+genericFoldMapSum'
+    :: forall tag a
+    .  (Generic a, ST.GFoldMapSum tag Raw (Rep a))
+    => (String -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
-genericFoldMapSumType f = ST.gFoldMapSum @tag @sumtag f . from
+genericFoldMapSum' f = ST.gFoldMapSum @tag @Raw (\p -> f (symbolVal' p)) . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@ where constructors are
 -- mapped to their index (distance from first/leftmost constructor)
@@ -97,3 +93,17 @@ genericFoldMapSumConsByte
     => (Word8 -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
 genericFoldMapSumConsByte f = gFoldMapSumConsByte @tag f . from
+
+-- | Generic 'foldMap' over a term of sum data type @a@, where we perform some
+--   amount of type-level calculation on constructors before reifying.
+--
+-- Hard to explain. Should be very performant.
+genericFoldMapSumType
+    :: forall tag sumtag a
+    .  (Generic a, ST.GFoldMapSum tag sumtag (Rep a))
+    => (forall
+        (x :: CstrTy sumtag)
+        .  ParseCstrC sumtag x
+        => Proxy# x -> GenericFoldMapM tag)
+    -> a -> GenericFoldMapM tag
+genericFoldMapSumType f = ST.gFoldMapSum @tag @sumtag f . from
