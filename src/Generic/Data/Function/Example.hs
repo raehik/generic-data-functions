@@ -4,8 +4,7 @@ module Generic.Data.Function.Example where
 
 import GHC.Generics
 import Generic.Data.Function.FoldMap
-import Generic.Data.Function.FoldMap.SumType qualified as ST
-import Generic.Data.Sum
+import Generic.Data.MetaParse.Cstr
 
 import Data.List qualified as List
 
@@ -24,11 +23,11 @@ instance GenericFoldMap Showly where
 
 showGeneric
     :: forall a
-    .  (Generic a, GFoldMapSum Showly (Rep a))
+    .  (Generic a, GFoldMapSum Showly Raw (Rep a))
     => a -> String
 showGeneric =
       mconcat . List.intersperse " "
-    . genericFoldMapSum @Showly (\cstr -> [cstr])
+    . genericFoldMapSumRaw @Showly (\cstr -> [cstr])
 
 showGeneric'
     :: forall a
@@ -36,11 +35,3 @@ showGeneric'
     => a -> String
 showGeneric' =
     mconcat . List.intersperse " " . genericFoldMapNonSum @Showly
-
-showGeneric''
-    :: forall a
-    .  (Generic a, ST.GFoldMapSum Showly Raw (Rep a))
-    => a -> String
-showGeneric'' =
-      mconcat . List.intersperse " "
-    . genericFoldMapSum' @Showly (\cstr -> [cstr])

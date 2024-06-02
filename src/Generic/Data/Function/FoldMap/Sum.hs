@@ -1,51 +1,65 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE UndecidableInstances #-} -- required below GHC 9.6
-
-{- | 'foldMap' for sum types where constructors are encoded by mapping the
-      constructor name.
-
-Note that constructor names are unique per type. So as long as your mapping
-function similarly outputs unique values of your monoid for each constructor,
-you should be able to "reverse" the process (e.g. for generic 'traverse').
--}
+{-# LANGUAGE UndecidableInstances #-} -- due to type families in constraints
+{-# LANGUAGE AllowAmbiguousTypes  #-} -- due to class design
 
 module Generic.Data.Function.FoldMap.Sum where
 
+import Generic.Data.MetaParse.Cstr
 import GHC.Generics
-import Generic.Data.Function.Common.Generic ( conName', absurdV1 )
+import Generic.Data.Function.Common.Generic ( absurdV1 )
 import Generic.Data.Function.FoldMap.Constructor
   ( GFoldMapC(gFoldMapC)
   , GenericFoldMap(type GenericFoldMapM) )
+import GHC.Exts ( type Proxy#, proxy# )
 
-class GFoldMapSum tag gf where
+class GFoldMapSum tag sumtag gf where
     gFoldMapSum
-        :: (String -> GenericFoldMapM tag) -> gf p -> GenericFoldMapM tag
+        :: (forall
+            (x :: CstrParseResult sumtag)
+            .  ReifyCstrParseResult sumtag x
+            => Proxy# x -> GenericFoldMapM tag)
+        -> gf p -> GenericFoldMapM tag
 
-instance GFoldMapSum tag gf => GFoldMapSum tag (D1 c gf) where
-    gFoldMapSum f = gFoldMapSum @tag f . unM1
+instance GFoldMapSumD tag sumtag dtName gf
+  => GFoldMapSum tag sumtag (D1 (MetaData dtName _md2 _md3 _md4) gf) where
+    gFoldMapSum f = gFoldMapSumD @tag @sumtag @dtName f . unM1
 
-instance GFoldMapCSum tag (l :+: r) => GFoldMapSum tag (l :+: r) where
-    gFoldMapSum = gFoldMapCSum @tag
+class GFoldMapSumD tag sumtag dtName gf where
+    gFoldMapSumD
+        :: (forall
+            (x :: CstrParseResult sumtag)
+            .  ReifyCstrParseResult sumtag x
+            => Proxy# x -> GenericFoldMapM tag)
+        -> gf p -> GenericFoldMapM tag
 
-instance GFoldMapCSum tag (C1 c gf) => GFoldMapSum tag (C1 c gf) where
-    gFoldMapSum = gFoldMapCSum @tag
+instance GFoldMapSumD tag sumtag dtName V1 where
+    gFoldMapSumD _ = absurdV1
 
-instance GFoldMapSum tag V1 where
-    gFoldMapSum _ = absurdV1
+instance GFoldMapCSum tag sumtag dtName (C1 c gf)
+  => GFoldMapSumD tag sumtag dtName (C1 c gf) where
+    gFoldMapSumD = gFoldMapCSum @tag @sumtag @dtName
 
--- | Sum type handler prefixing constructor contents with their mapped
---   constructor name via a provided @String -> m@.
---
--- TODO rename
-class GFoldMapCSum tag gf where
+instance GFoldMapCSum tag sumtag dtName (l :+: r)
+  => GFoldMapSumD tag sumtag dtName (l :+: r) where
+    gFoldMapSumD = gFoldMapCSum @tag @sumtag @dtName
+
+class GFoldMapCSum tag sumtag dtName gf where
     gFoldMapCSum
-        :: (String -> GenericFoldMapM tag) -> gf p -> GenericFoldMapM tag
+        :: (forall
+            (x :: CstrParseResult sumtag)
+            .  ReifyCstrParseResult sumtag x
+            => Proxy# x -> GenericFoldMapM tag)
+        -> gf p -> GenericFoldMapM tag
 
-instance (GFoldMapCSum tag l, GFoldMapCSum tag r)
-  => GFoldMapCSum tag (l :+: r) where
-    gFoldMapCSum f = \case L1 l -> gFoldMapCSum @tag f l
-                           R1 r -> gFoldMapCSum @tag f r
+instance (GFoldMapCSum tag sumtag dtName l, GFoldMapCSum tag sumtag dtName r)
+  => GFoldMapCSum tag sumtag dtName (l :+: r) where
+    gFoldMapCSum f = \case L1 l -> gFoldMapCSum @tag @sumtag @dtName f l
+                           R1 r -> gFoldMapCSum @tag @sumtag @dtName f r
 
-instance (Semigroup (GenericFoldMapM tag), Constructor c, GFoldMapC tag gf)
-  => GFoldMapCSum tag (C1 c gf) where
-    gFoldMapCSum mapCstr (M1 a) = mapCstr (conName' @c) <> gFoldMapC @tag a
+-- TODO could play with this. Perhaps Unsatisfiable (GHC 9.8) is better?
+instance
+  ( Semigroup (GenericFoldMapM tag), GFoldMapC tag gf
+  , ReifyCstrParseResult sumtag cstrParsed
+  , ForceGCParse dtName cstr (ParseCstr sumtag cstr) ~ cstrParsed
+  ) => GFoldMapCSum tag sumtag dtName (C1 (MetaCons cstr _mc2 _mc3) gf) where
+    gFoldMapCSum mapReifyCstr (M1 a) =
+        mapReifyCstr (proxy# @cstrParsed) <> gFoldMapC @tag a

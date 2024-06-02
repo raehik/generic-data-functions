@@ -43,14 +43,16 @@ library
       Generic.Data.Function.FoldMap.NonSum
       Generic.Data.Function.FoldMap.Sum
       Generic.Data.Function.FoldMap.SumConsByte
-      Generic.Data.Function.FoldMap.SumType
       Generic.Data.Function.Traverse
       Generic.Data.Function.Traverse.Constructor
       Generic.Data.Function.Traverse.NonSum
       Generic.Data.Function.Traverse.Sum
-      Generic.Data.Sum
+      Generic.Data.MetaParse.Cstr
+      Generic.Data.MetaParse.Internal
+      Generic.Data.MetaParse.Symparsec
       Generic.Data.Wrappers
       Generic.Type.CstrPath
+      Test
   other-modules:
       Paths_generic_data_functions
   hs-source-dirs:
@@ -72,4 +74,5 @@ library
     , contravariant >=1.5.5 && <1.6
     , symparsec
     , text >=1.2.5.0 && <2.2
+    , type-level-show
   default-language: GHC2021

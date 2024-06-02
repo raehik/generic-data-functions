@@ -1,8 +1,11 @@
 # generic-data-functions to-dos
-  * add tests (steal some from binrep?)
-  * provide a different `traverse` that inspects field names, to eventually
-    replicate Gabriella's optparse-generic
-  * provide more versions: binary, cereal, store-style
+* type-level parser names. `Raw`?... bad but idk what to use
+* add tests (steal some from binrep?)
+* provide a different `traverse` that inspects field names, to eventually
+  replicate Gabriella's optparse-generic
+  * (actually I don't think we can make this a reusable generic. but we could do
+    cool stuff with Symparsec!)
+* provide more versions: binary, cereal, store-style
 
 ## Code quality
   * refactor GTraverse typevar names (not sending whole meta now, just Symbol)

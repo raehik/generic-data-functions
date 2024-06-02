@@ -31,9 +31,8 @@ module Generic.Data.Function.FoldMap
   ( GenericFoldMap(..)
   , genericFoldMapNonSum, GFoldMapNonSum
   , genericFoldMapSum,    GFoldMapSum
+  , genericFoldMapSumRaw
   , genericFoldMapSumConsByte,    GFoldMapSumConsByte
-  , genericFoldMapSumType
-  , genericFoldMapSum'
   ) where
 
 import GHC.Generics
@@ -44,8 +43,7 @@ import Generic.Data.Function.FoldMap.Constructor
 import Generic.Data.Function.FoldMap.SumConsByte
 import Data.Word ( Word8 )
 
-import Generic.Data.Function.FoldMap.SumType qualified as ST
-import Generic.Data.Sum
+import Generic.Data.MetaParse.Cstr
 import GHC.Exts ( type Proxy# )
 import GHC.TypeLits ( symbolVal' )
 
@@ -53,30 +51,34 @@ import GHC.TypeLits ( symbolVal' )
 --
 -- @a@ must have exactly one constructor.
 genericFoldMapNonSum
-    :: forall {k} (tag :: k) a
+    :: forall tag a
     .  ( Generic a, GFoldMapNonSum tag (Rep a)
     ) => a -> GenericFoldMapM tag
 genericFoldMapNonSum = gFoldMapNonSum @tag . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@.
 --
--- You must provide a function for mapping constructor names to monoidal values.
---
--- This is the most generic option, but depending on your string manipulation
--- may be slower.
+-- You must provide a type tag for parsing constructor names on the type-level,
+-- and a function for reifying such results to monoidal values.
 genericFoldMapSum
-    :: forall {k} (tag :: k) a
-    .  ( Generic a, GFoldMapSum tag (Rep a)
-    ) => (String -> GenericFoldMapM tag)
+    :: forall tag sumtag a
+    .  (Generic a, GFoldMapSum tag sumtag (Rep a))
+    => (forall
+        (x :: CstrParseResult sumtag)
+        .  ReifyCstrParseResult sumtag x
+        => Proxy# x -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
-genericFoldMapSum f = gFoldMapSum @tag f . from
+genericFoldMapSum f = gFoldMapSum @tag @sumtag f . from
 
-genericFoldMapSum'
+-- | Generic 'foldMap' over a term of sum data type @a@.
+--
+-- You must provide a function for mapping constructor names to monoidal values.
+genericFoldMapSumRaw
     :: forall tag a
-    .  (Generic a, ST.GFoldMapSum tag Raw (Rep a))
+    .  (Generic a, GFoldMapSum tag Raw (Rep a))
     => (String -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
-genericFoldMapSum' f = ST.gFoldMapSum @tag @Raw (\p -> f (symbolVal' p)) . from
+genericFoldMapSumRaw f = gFoldMapSum @tag @Raw (\p -> f (symbolVal' p)) . from
 
 -- | Generic 'foldMap' over a term of sum data type @a@ where constructors are
 -- mapped to their index (distance from first/leftmost constructor)
@@ -93,17 +95,3 @@ genericFoldMapSumConsByte
     => (Word8 -> GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
 genericFoldMapSumConsByte f = gFoldMapSumConsByte @tag f . from
-
--- | Generic 'foldMap' over a term of sum data type @a@, where we perform some
---   amount of type-level calculation on constructors before reifying.
---
--- Hard to explain. Should be very performant.
-genericFoldMapSumType
-    :: forall tag sumtag a
-    .  (Generic a, ST.GFoldMapSum tag sumtag (Rep a))
-    => (forall
-        (x :: CstrTy sumtag)
-        .  ParseCstrC sumtag x
-        => Proxy# x -> GenericFoldMapM tag)
-    -> a -> GenericFoldMapM tag
-genericFoldMapSumType f = ST.gFoldMapSum @tag @sumtag f . from
