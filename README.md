@@ -8,9 +8,15 @@ which must be filled by the user via a type class. Perhaps you may also think of
 these as "reusable" or "generic" generics.
 
 Most relevant for simple parsing and printing/serializing/reducing tasks where
-the only "work" to do for the given data type is mechanical field sequencing.
-If you require more logic than that (and can't place it in types/newtypes), you
+the only "work" to do for the given data type is mechanical field sequencing. If
+you require more logic than that (and can't place it in types/newtypes), you
 will not be able to use this library.
+
+Emphasis is put on type safety and performance. Notably, for sum type generics,
+we permit parsing constructor names on the type level (via
+[symparsec](https://hackage.haskell.org/package/symparsec)). For cases where you
+want to implement your own high-performance sum type handling, we provide
+`Generic.Data.FOnCstr`.
 
 ## Rationale
 There are a number of competing parsing and serialization Haskell libraries.
@@ -24,6 +30,12 @@ cases (due to some specific library design). Alas, this would mean they have to
 copy-paste my generics and swap the type classes. Very silly. But it turned out
 my generics were otherwise highly general, so I spun them out into this library.
 Now you can swap the type class just by filling in some holes.
+
+## Design notes
+### Sum types are handled by prepending a sum tag
+Unless otherwise specified, this is how we disambiguate constructors. How the
+sum tag is parsed from a constructor is up to the user (and may be done on the
+type-level if one wishes).
 
 ## Functions
 ### `foldMap` (L->R)

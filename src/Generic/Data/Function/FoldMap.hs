@@ -44,7 +44,6 @@ import Generic.Data.Function.FoldMap.SumConsByte
 import Data.Word ( Word8 )
 
 import Generic.Data.MetaParse.Cstr
-import GHC.Exts ( type Proxy# )
 import GHC.TypeLits ( symbolVal' )
 
 -- | Generic 'foldMap' over a term of non-sum data type @a@.
@@ -63,10 +62,7 @@ genericFoldMapNonSum = gFoldMapNonSum @tag . from
 genericFoldMapSum
     :: forall tag sumtag a
     .  (Generic a, GFoldMapSum tag sumtag (Rep a))
-    => (forall
-        (x :: CstrParseResult sumtag)
-        .  ReifyCstrParseResult sumtag x
-        => Proxy# x -> GenericFoldMapM tag)
+    => ParseCstrTo sumtag (GenericFoldMapM tag)
     -> a -> GenericFoldMapM tag
 genericFoldMapSum f = gFoldMapSum @tag @sumtag f . from
 

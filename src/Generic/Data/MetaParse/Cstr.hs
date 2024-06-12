@@ -19,12 +19,20 @@ module Generic.Data.MetaParse.Cstr
   , CstrParser'(..)
   , ForceGCParse
   , Raw
+  , ParseCstrTo
   ) where
 
 import Generic.Data.MetaParse.Internal
 import Data.Kind ( type Constraint )
 import GHC.TypeLits ( type Symbol, KnownSymbol )
 import GHC.TypeError ( ErrorMessage(..), type TypeError )
+import GHC.Exts ( Proxy# )
+
+-- | Constructor name parse result demotion function using 'Proxy#'.
+type ParseCstrTo tag r =
+       forall (x :: CstrParseResult tag)
+    .  ReifyCstrParseResult tag x
+    => Proxy# x -> r
 
 -- | Types defining constructor name parsers.
 --

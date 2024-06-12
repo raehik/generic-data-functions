@@ -3,20 +3,18 @@
 
 module Generic.Data.Function.FoldMap.Sum where
 
-import Generic.Data.MetaParse.Cstr
 import GHC.Generics
 import Generic.Data.Function.Common.Generic ( absurdV1 )
 import Generic.Data.Function.FoldMap.Constructor
   ( GFoldMapC(gFoldMapC)
   , GenericFoldMap(type GenericFoldMapM) )
-import GHC.Exts ( type Proxy#, proxy# )
+import Generic.Data.MetaParse.Cstr
+import GHC.Exts ( proxy# )
+import GHC.TypeLits ( Symbol )
 
 class GFoldMapSum tag sumtag gf where
     gFoldMapSum
-        :: (forall
-            (x :: CstrParseResult sumtag)
-            .  ReifyCstrParseResult sumtag x
-            => Proxy# x -> GenericFoldMapM tag)
+        :: ParseCstrTo sumtag (GenericFoldMapM tag)
         -> gf p -> GenericFoldMapM tag
 
 instance GFoldMapSumD tag sumtag dtName gf
@@ -25,10 +23,7 @@ instance GFoldMapSumD tag sumtag dtName gf
 
 class GFoldMapSumD tag sumtag dtName gf where
     gFoldMapSumD
-        :: (forall
-            (x :: CstrParseResult sumtag)
-            .  ReifyCstrParseResult sumtag x
-            => Proxy# x -> GenericFoldMapM tag)
+        :: ParseCstrTo sumtag (GenericFoldMapM tag)
         -> gf p -> GenericFoldMapM tag
 
 instance GFoldMapSumD tag sumtag dtName V1 where
@@ -42,12 +37,9 @@ instance GFoldMapCSum tag sumtag dtName (l :+: r)
   => GFoldMapSumD tag sumtag dtName (l :+: r) where
     gFoldMapSumD = gFoldMapCSum @tag @sumtag @dtName
 
-class GFoldMapCSum tag sumtag dtName gf where
+class GFoldMapCSum tag sumtag (dtName :: Symbol) gf where
     gFoldMapCSum
-        :: (forall
-            (x :: CstrParseResult sumtag)
-            .  ReifyCstrParseResult sumtag x
-            => Proxy# x -> GenericFoldMapM tag)
+        :: ParseCstrTo sumtag (GenericFoldMapM tag)
         -> gf p -> GenericFoldMapM tag
 
 instance (GFoldMapCSum tag sumtag dtName l, GFoldMapCSum tag sumtag dtName r)

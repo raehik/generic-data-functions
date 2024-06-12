@@ -11,9 +11,8 @@ This function can provide generic support for simple parser-esque types.
 module Generic.Data.Function.Traverse
   ( GenericTraverse(..)
   , genericTraverseNonSum , GTraverseNonSum
-  , GenericTraverseSum(..), PfxTagCfg(..)
   , genericTraverseSum,     GTraverseSum
-  , eqShowPfxTagCfg
+  , genericTraverseSumRaw
   ) where
 
 import GHC.Generics
@@ -21,8 +20,8 @@ import GHC.Generics
 import Generic.Data.Function.Traverse.NonSum
 import Generic.Data.Function.Traverse.Sum
 import Generic.Data.Function.Traverse.Constructor
-
-import Data.Text qualified as Text
+import Generic.Data.MetaParse.Cstr
+import GHC.TypeLits ( symbolVal' )
 
 -- | Generic 'traverse' over a term of non-sum data type @f a@,
 --   where @f@ is set by the @tag@ you pass.
@@ -34,25 +33,28 @@ genericTraverseNonSum
     ) => GenericTraverseF tag a
 genericTraverseNonSum = to <$> gTraverseNonSum @tag
 
--- | Generic 'traverse' over a term of sum data type @f a@,
---   where @f@ is set by the @tag@ you pass.
---
--- You must provide a configuration for how to handle constructors.
 genericTraverseSum
-    :: forall {k} (tag :: k) a pt
+    :: forall tag sumtag a pt
     .  ( Generic a
        , Functor (GenericTraverseF tag)
-       , GTraverseSum tag (Rep a)
-       , GenericTraverseC tag pt
-    ) => PfxTagCfg pt -> GenericTraverseF tag a
-genericTraverseSum ptc = to <$> gTraverseSum @tag ptc
+       , GTraverseSum tag sumtag (Rep a)
+    ) => ParseCstrTo sumtag pt
+      -> (String -> GenericTraverseF tag pt)
+      -> (forall x. String -> GenericTraverseF tag x)
+      -> (pt -> pt -> Bool)
+      -> GenericTraverseF tag a
+genericTraverseSum parseCstr ptGet fNoMatch ptEq =
+    to <$> gTraverseSum @tag @sumtag parseCstr ptGet fNoMatch ptEq
 
--- | Construct a prefix tag config using existing 'Eq' and 'Show' instances.
---
--- The user only needs to provide the constructor name parser.
-eqShowPfxTagCfg :: (Eq a, Show a) => (String -> a) -> PfxTagCfg a
-eqShowPfxTagCfg f = PfxTagCfg
-    { pfxTagCfgFromCstr = f
-    , pfxTagCfgEq = (==)
-    , pfxTagCfgShow = Text.pack . show
-    }
+genericTraverseSumRaw
+    :: forall tag a pt
+    .  ( Generic a
+       , Functor (GenericTraverseF tag)
+       , GTraverseSum tag Raw (Rep a)
+    ) => (String -> pt)
+      -> (String -> GenericTraverseF tag pt)
+      -> (forall x. String -> GenericTraverseF tag x)
+      -> (pt -> pt -> Bool)
+      -> GenericTraverseF tag a
+genericTraverseSumRaw parseCstr ptGet fNoMatch ptEq = to <$>
+    gTraverseSum @tag @Raw (\p -> parseCstr (symbolVal' p)) ptGet fNoMatch ptEq
