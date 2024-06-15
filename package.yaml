@@ -50,14 +50,13 @@ default-extensions:
 ghc-options:
 - -Wall
 
-dependencies:
-- base >= 4.14 && < 5
-- text >= 1.2.5.0 && < 2.2
-- contravariant ^>= 1.5.5
+# omitting ticks is good; see https://gitlab.haskell.org/ghc/ghc/-/issues/20531
+# (off by default since GHC 9.4)
+- -Wno-unticked-promoted-constructors
 
-# TODO probably temporary...?
-- symparsec
-- type-level-show
+dependencies:
+- base >= 4.16 && < 5
+- contravariant ^>= 1.5.5
 
 library:
   source-dirs: src

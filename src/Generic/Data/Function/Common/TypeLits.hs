@@ -5,7 +5,7 @@
 module Generic.Data.Function.Common.TypeLits where
 
 import GHC.TypeNats ( Natural, KnownNat, natVal' )
-import GHC.TypeLits ( Symbol, KnownSymbol, symbolVal' )
+import GHC.TypeLits ( KnownSymbol, symbolVal' )
 import GHC.Exts ( proxy#, Proxy# )
 
 natVal'' :: forall n. KnownNat n => Natural

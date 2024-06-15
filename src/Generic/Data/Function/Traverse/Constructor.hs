@@ -5,7 +5,6 @@ module Generic.Data.Function.Traverse.Constructor where
 
 import GHC.Generics
 import GHC.TypeLits
-import Generic.Data.Function.Common.Generic ( datatypeName', conName', selName'' )
 import Generic.Data.Function.Common.TypeLits ( natVal'', symbolVal'' )
 import Generic.Data.Function.Common.Error ( eNoEmpty )
 
@@ -15,9 +14,6 @@ import Control.Applicative ( Alternative(empty) )
 import Data.Kind ( type Type, type Constraint )
 
 import Generic.Data.Wrappers ( NoRec0, type ENoRec0, EmptyRec0 )
-import GHC.TypeError ( TypeError, ErrorMessage(..) )
-
--- import Data.Monoid
 
 -- | Implementation enumeration type class for generic 'traverse'.
 --
@@ -96,11 +92,11 @@ instance
 instance
   ( GenericTraverse tag, GenericTraverseC tag a
   , Functor (GenericTraverseF tag)
-  , KnownNat si, Selector ms, KnownSymbol cc, KnownSymbol cd
-  ) => GTraverseC tag cd cc si (S1 ms (Rec0 a)) where
+  , KnownNat si, ReifyMaybeSymbol mSelName, KnownSymbol cc, KnownSymbol cd
+  ) => GTraverseC tag cd cc si (S1 (MetaSel mSelName _ms2 _ms3 _ms4) (Rec0 a)) where
     gTraverseC = (M1 . K1) <$> genericTraverseAction @tag cd cc cs si
       where
-        cs = selName'' @ms
+        cs = reifyMaybeSymbol @mSelName
         cd = symbolVal'' @cd
         cc = symbolVal'' @cc
         si = natVal'' @si
@@ -111,3 +107,9 @@ instance Applicative (GenericTraverseF tag) => GTraverseC tag cd cc 0 U1 where
 type family ProdArity (f :: Type -> Type) :: Natural where
     ProdArity (S1 c f)  = 1
     ProdArity (l :*: r) = ProdArity l + ProdArity r
+
+class ReifyMaybeSymbol (mstr :: Maybe Symbol) where
+    reifyMaybeSymbol :: Maybe String
+instance ReifyMaybeSymbol Nothing where reifyMaybeSymbol = Nothing
+instance KnownSymbol str => ReifyMaybeSymbol (Just str) where
+    reifyMaybeSymbol = Just (symbolVal'' @str)

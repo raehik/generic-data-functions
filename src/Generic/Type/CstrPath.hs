@@ -10,7 +10,6 @@ import GHC.TypeLits
 import Data.Type.Bool ( type If )
 import Data.Type.Equality ( type (==) )
 import Data.Kind ( type Type )
-import Data.Type.List ( type Reverse )
 
 -- | Which direction to take at a ':+:' constructor choice.
 data GCstrChoice = GoL1 -- ^ left  (the 'L1' constructor)
@@ -31,3 +30,9 @@ type family GCstrPath' name zippers where
     GCstrPath' name ('(bcs, (C1 (MetaCons name' _ _) _)) : zippers) =
         If (name == name') (Right (Reverse bcs)) (GCstrPath' name zippers)
     GCstrPath' name '[] = Left (Text "no matching constructor")
+
+-- | Reverse a type level list.
+type Reverse as = Reverse' as '[]
+type family Reverse' (as :: [k]) (acc :: [k]) :: [k] where
+  Reverse' '[]      acc = acc
+  Reverse' (a : as) acc = Reverse' as (a : acc)

@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-} -- due to GHC bug
+{-# LANGUAGE UndecidableInstances #-} -- required below GHC 9.6
 
 {- | Definitions for parsing data type constructor names on the type level.
 
@@ -25,7 +26,7 @@ module Generic.Data.MetaParse.Cstr
 import Generic.Data.MetaParse.Internal
 import Data.Kind ( type Constraint )
 import GHC.TypeLits ( type Symbol, KnownSymbol )
-import GHC.TypeError ( ErrorMessage(..), type TypeError )
+import GHC.TypeLits ( ErrorMessage(..), type TypeError )
 import GHC.Exts ( Proxy# )
 
 -- | Constructor name parse result demotion function using 'Proxy#'.
