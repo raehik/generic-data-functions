@@ -1,3 +1,12 @@
+## 0.6.0 (2024-06-15)
+* support parsing constructor names on type-level for `foldMap`, `traverse`
+  * effectively requires Symparsec-- but we need not incur a dependency
+  * previous behaviour is still present using `*Raw` functions
+* add `FOnCstr`, for targeting a single constructor of a sum type
+* bump minimum compiler to GHC 9.2 (base-4.16) because I can't easily test GHC
+  9.0
+* big cleanup
+
 ## 0.5.1 (2024-04-10)
 * remove spurious constraint in Traverse.Sum (should be same semantics)
 * bump text upper bound for GHC 9.8 compatibility
